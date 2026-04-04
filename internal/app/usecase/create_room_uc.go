@@ -1,0 +1,37 @@
+package usecase
+
+import (
+	"MeetingRoomsAPI/internal/app/dto"
+	"MeetingRoomsAPI/internal/app/mapper"
+	"MeetingRoomsAPI/internal/domain/model"
+	"MeetingRoomsAPI/internal/domain/port"
+	"context"
+
+	ucerrs "MeetingRoomsAPI/internal/app/errs"
+)
+
+type CreateRoomUC struct {
+	room port.RoomRepository
+}
+
+func NewCreateRoomUC(room port.RoomRepository) *CreateRoomUC {
+	return &CreateRoomUC{room: room}
+}
+
+func (uc *CreateRoomUC) Execute(ctx context.Context, in dto.CreateRoomInput) (dto.CreateRoomOutput, error) {
+	room, err := model.NewRoom(in.Name, in.Description, in.Capacity)
+	if err != nil {
+		return dto.CreateRoomOutput{}, ucerrs.Wrap(
+			ucerrs.ErrInvalidInput, err,
+		)
+	}
+
+	createdRoom, err := uc.room.Create(ctx, room)
+	if err != nil {
+		return dto.CreateRoomOutput{}, ucerrs.Wrap(
+			ucerrs.ErrCreateRoomDB, err,
+		)
+	}
+
+	return mapper.MapDomainToCreateRoomDTO(createdRoom), nil
+}

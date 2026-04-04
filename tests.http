@@ -1,0 +1,64 @@
+### POST request for dummy login as an admin
+POST http://localhost:8080/dummyLogin
+Content-Type: application/json
+
+{
+  "role": "admin"
+}
+
+### POST request for dummy login as an user
+POST http://localhost:8080/dummyLogin
+Content-Type: application/json
+
+{
+  "role": "user"
+}
+
+### POST request to register (e.g. create a new user)
+POST http://localhost:8080/register
+Content-Type: application/json
+
+{
+  "email": "new@avito.ru",
+  "password": "123pass321",
+  "role": "user"
+}
+
+### POST request to log in
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+  "email": "new@avito.ru",
+  "password": "123pass321"
+}
+
+### POST request to create a room
+POST http://localhost:8080/rooms/create
+Content-Type: application/json
+
+{
+  "name": "Room №713"
+}
+
+### GET request to get a list of rooms
+GET http://localhost:8080/rooms/list
+Accept: application/json
+
+### POST request to create a schedule
+@roomId = 12615638-c7c4-47e4-a2b6-1fc472a2f897
+POST http://localhost:8080/rooms/{{roomId}}/schedule/create
+Content-Type: application/json
+
+{
+  "daysOfWeek": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "startTime": "10:00",
+  "endTime": "14:00"
+}

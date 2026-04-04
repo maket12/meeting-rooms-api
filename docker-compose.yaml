@@ -1,0 +1,48 @@
+name: meeting-rooms-api
+
+services:
+  meeting-rooms-db:
+    image: postgres:15-alpine
+    container_name: meeting-rooms-db
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - meeting_rooms_db_data:/var/lib/postgresql/data
+
+  meeting-rooms-migrations:
+    image: migrate/migrate:latest
+    container_name: meeting-rooms-migrations
+    volumes:
+      - ./migrations:/migrations
+    command:
+      - -path=/migrations/
+      - -database=postgres://${DB_USER}:${DB_PASSWORD}@meeting-rooms-db:5432/${DB_NAME}?sslmode=disable
+      - up
+    depends_on:
+      meeting-rooms-db:
+        condition: service_healthy
+
+  meeting-rooms-server:
+    build: .
+    container_name: meeting-rooms-server
+    depends_on:
+      meeting-rooms-migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=meeting-rooms-db
+    ports:
+      - "8080:8080"
+
+volumes:
+  meeting_rooms_db_data:

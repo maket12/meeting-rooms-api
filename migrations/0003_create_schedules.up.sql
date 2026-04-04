@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS schedules (
     CONSTRAINT unique_room_schedule UNIQUE (room_id)
 );
 
-CREATE INDEX idx_schedules_room_id ON schedules(room_id);
+CREATE INDEX IF NOT EXISTS idx_schedules_room_id ON schedules(room_id);

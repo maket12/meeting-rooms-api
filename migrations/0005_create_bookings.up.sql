@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS bookings (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_bookings_user_active ON bookings (user_id) WHERE (status = 'active');
+CREATE INDEX IF NOT EXISTS idx_bookings_user_active ON bookings (user_id) WHERE (status = 'active');
