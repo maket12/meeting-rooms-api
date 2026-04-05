@@ -47,6 +47,13 @@ func NewRouter(
 func (r *Router) InitRoutes(log *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
 
+	// Health check
+	mux.HandleFunc("GET /_info", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	})
+
 	// Public routes
 	mux.HandleFunc("POST /dummyLogin", r.Auth.DummyLogin)
 	mux.HandleFunc("POST /register", r.Auth.Register)

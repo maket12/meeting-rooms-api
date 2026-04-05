@@ -115,7 +115,9 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	createScheduleUC := usecase.NewCreateScheduleUC(
 		trManager, roomRepo, scheduleRepo, slotRepo,
 	)
-	listSlotsUC := usecase.NewListSlotsUC(trManager, roomRepo, slotRepo)
+	listSlotsUC := usecase.NewListSlotsUC(
+		trManager, roomRepo, scheduleRepo, slotRepo,
+	)
 	createBookingUC := usecase.NewCreateBookingUC(
 		trManager,
 		slotRepo,

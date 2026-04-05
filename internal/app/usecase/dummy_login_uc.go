@@ -42,7 +42,9 @@ func (uc *DummyLoginUC) Execute(ctx context.Context, in dto.DummyLoginInput) (dt
 	case "user":
 		uID = uc.userID
 	default:
-		return dto.DummyLoginOutput{}, ucerrs.ErrInvalidInput
+		return dto.DummyLoginOutput{}, ucerrs.Wrap(
+			ucerrs.ErrInvalidInput, errors.New("invalid role"),
+		)
 	}
 
 	// Get the dummy user

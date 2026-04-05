@@ -180,11 +180,11 @@ Authorization: Bearer {{adminToken}}
 ### =================================================================
 
 ### 6.1. Отмена своей брони (Позитив)
-POST http://localhost:8080/bookings/{{bookingId}/cancel
+POST http://localhost:8080/bookings/{{bookingId}}/cancel
 Authorization: Bearer {{userToken}}
 
 ### 6.2. Идемпотентность: Повторная отмена той же брони (Должно быть 200 OK)
-POST http://localhost:8080/bookings/{{bookingId}/cancel
+POST http://localhost:8080/bookings/{{bookingId}}/cancel
 Authorization: Bearer {{userToken}}
 
 ### 6.3. Ошибка 404: Отмена несуществующей брони
@@ -192,4 +192,4 @@ POST http://localhost:8080/bookings/00000000-0000-0000-0000-000000000000/cancel
 Authorization: Bearer {{userToken}}
 
 ### 6.4. Ошибка 401: Отмена без токена
-POST http://localhost:8080/bookings/{{bookingId}/cancel
+POST http://localhost:8080/bookings/{{bookingId}}/cancel

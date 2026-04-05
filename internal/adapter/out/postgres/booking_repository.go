@@ -12,6 +12,7 @@ import (
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -40,6 +41,14 @@ func (r *BookingRepository) Create(ctx context.Context, booking *model.Booking) 
 
 	rawBooking, err := r.q.CreateBooking(ctx, db, params)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return nil, pkgerrs.NewObjectAlreadyExistsErrorWithReason(
+					"booking", pgErr,
+				)
+			}
+		}
 		return nil, err
 	}
 

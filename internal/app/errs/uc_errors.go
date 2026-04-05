@@ -27,7 +27,6 @@ var (
 */
 var (
 	ErrCreateUserDB          = errors.New("failed to create user using db")
-	ErrUserAlreadyExists     = errors.New("user with given email already exists")
 	ErrGetUserByIDDB         = errors.New("failed to get user by id using db")
 	ErrGetUserByEmailDB      = errors.New("failed to get user by email using db")
 	ErrCreateRoomDB          = errors.New("failed to create room using db")
@@ -48,4 +47,7 @@ var (
 	ErrScheduleNotFound = errors.New("schedule not found")
 	ErrSlotNotFound     = errors.New("slot not found")
 	ErrBookingNotFound  = errors.New("booking not found")
+
+	ErrUserAlreadyExists     = errors.New("user with given email already exists")
+	ErrScheduleAlreadyExists = errors.New("schedule for this room already exists")
 )

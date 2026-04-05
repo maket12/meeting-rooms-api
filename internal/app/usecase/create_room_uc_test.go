@@ -84,7 +84,7 @@ func TestCreateRoomUC_Execute(t *testing.T) {
 				assert.ErrorIs(t, err, tt.expectErr)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.input.Name, out.Name)
+				assert.Equal(t, tt.input.Name, out.Room.Name)
 			}
 		})
 	}

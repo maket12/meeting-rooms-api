@@ -59,6 +59,9 @@ func (uc *CreateScheduleUC) Execute(ctx context.Context, in dto.CreateScheduleIn
 
 		createdSchedule, err := uc.schedule.Create(ctx, schedule)
 		if err != nil {
+			if errors.Is(err, pkgerrs.ErrObjectAlreadyExists) {
+				return ucerrs.ErrScheduleAlreadyExists
+			}
 			return ucerrs.Wrap(ucerrs.ErrCreateScheduleDB, err)
 		}
 
