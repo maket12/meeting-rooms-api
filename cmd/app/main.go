@@ -2,6 +2,7 @@ package main
 
 import (
 	adapterhttp "MeetingRoomsAPI/internal/adapter/in/http"
+	adapterconf "MeetingRoomsAPI/internal/adapter/out/conference"
 	adapterpg "MeetingRoomsAPI/internal/adapter/out/postgres"
 	"MeetingRoomsAPI/internal/app/usecase"
 	"MeetingRoomsAPI/internal/config"
@@ -92,6 +93,8 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	roomRepo := adapterpg.NewRoomRepository(pgClient, trmpgx.DefaultCtxGetter)
 	scheduleRepo := adapterpg.NewScheduleRepository(pgClient, trmpgx.DefaultCtxGetter)
 	slotRepo := adapterpg.NewSlotRepository(pgClient, trmpgx.DefaultCtxGetter)
+	bookingRepo := adapterpg.NewBookingRepository(pgClient, trmpgx.DefaultCtxGetter)
+	conferenceService := adapterconf.NewConferenceService("available")
 	jwtGen := infrajwt.NewTokenGenerator(cfg.AuthSecret, cfg.AuthTTL)
 	passHasher := infrahasher.NewPasswordHasher(cfg.PasswordCost)
 
@@ -110,9 +113,17 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	createRoomUC := usecase.NewCreateRoomUC(roomRepo)
 	listRoomsUC := usecase.NewListRoomsUC(roomRepo)
 	createScheduleUC := usecase.NewCreateScheduleUC(
-		trManager, scheduleRepo, slotRepo,
+		trManager, roomRepo, scheduleRepo, slotRepo,
 	)
-	listSlotsUC := usecase.NewListSlotsUC(trManager, slotRepo)
+	listSlotsUC := usecase.NewListSlotsUC(trManager, roomRepo, slotRepo)
+	createBookingUC := usecase.NewCreateBookingUC(
+		trManager,
+		slotRepo,
+		bookingRepo,
+		conferenceService)
+	cancelBookingUC := usecase.NewCancelBookingUC(bookingRepo)
+	listMyBookingsUC := usecase.NewListMyBookingsUC(bookingRepo)
+	listBookingsUC := usecase.NewListBookingsUC(bookingRepo)
 
 	// Handlers
 	authHandler := adapterhttp.NewAuthHandler(
@@ -134,13 +145,22 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		logger,
 		listSlotsUC,
 	)
+	bookingHandler := adapterhttp.NewBookingHandler(
+		logger,
+		createBookingUC,
+		cancelBookingUC,
+		listMyBookingsUC,
+		listBookingsUC,
+	)
 
 	router := adapterhttp.NewRouter(
 		authHandler,
 		roomHandler,
 		scheduleHandler,
 		slotHandler,
-	).InitRoutes()
+		bookingHandler,
+		jwtGen,
+	).InitRoutes([]byte(cfg.AuthSecret), logger)
 
 	srv := &http.Server{
 		Addr:    ":8080",

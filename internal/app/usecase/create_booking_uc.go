@@ -80,7 +80,7 @@ func (uc *CreateBookingUC) Execute(ctx context.Context, in dto.CreateBookingInpu
 	})
 
 	if err != nil {
-		return dto.CreateBookingOutput{}, nil
+		return dto.CreateBookingOutput{}, err
 	}
 
 	return out, nil

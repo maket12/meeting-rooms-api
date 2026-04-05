@@ -6,7 +6,9 @@ import (
 	"MeetingRoomsAPI/internal/app/mapper"
 	"MeetingRoomsAPI/internal/domain/model"
 	"MeetingRoomsAPI/internal/domain/port"
+	pkgerrs "MeetingRoomsAPI/pkg/errs"
 	"context"
+	"errors"
 
 	"github.com/avito-tech/go-transaction-manager/trm/v2"
 )
@@ -26,6 +28,7 @@ func NewCreateScheduleUC(
 ) *CreateScheduleUC {
 	return &CreateScheduleUC{
 		trManager: trManager,
+		room:      room,
 		schedule:  schedule,
 		slot:      slot,
 	}
@@ -35,6 +38,14 @@ func (uc *CreateScheduleUC) Execute(ctx context.Context, in dto.CreateScheduleIn
 	var out dto.CreateScheduleOutput
 
 	err := uc.trManager.Do(ctx, func(ctx context.Context) error {
+		_, err := uc.room.Get(ctx, in.RoomID)
+		if err != nil {
+			if errors.Is(err, pkgerrs.ErrObjectNotFound) {
+				return ucerrs.ErrRoomNotFound
+			}
+			return ucerrs.Wrap(ucerrs.ErrGetRoomDB, err)
+		}
+
 		// Create schedule
 		schedule, err := model.NewSchedule(
 			in.RoomID,

@@ -1,68 +1,69 @@
-### POST request for dummy login as an admin
+### 1. Dummy Login (Admin) - ПОЛУЧАЕМ ТОКЕН
+# @name adminLogin
 POST http://localhost:8080/dummyLogin
 Content-Type: application/json
 
-{
-  "role": "admin"
-}
+{ "role": "admin" }
 
-### POST request for dummy login as an user
-POST http://localhost:8080/dummyLogin
-Content-Type: application/json
+> {%
+    client.global.set("adminToken", response.body.token);
+    client.log("Admin Token saved!");
+%}
 
-{
-  "role": "user"
-}
-
-### POST request to register (e.g. create a new user)
-POST http://localhost:8080/register
-Content-Type: application/json
-
-{
-  "email": "new@avito.ru",
-  "password": "123pass321",
-  "role": "user"
-}
-
-### POST request to log in
-POST http://localhost:8080/login
-Content-Type: application/json
-
-{
-  "email": "new@avito.ru",
-  "password": "123pass321"
-}
-
-### POST request to create a room
+### 2. Create Room (Admin) - ПОЛУЧАЕМ ID КОМНАТЫ
+# @name createRoom
 POST http://localhost:8080/rooms/create
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-  "name": "Room №713"
+  "name": "Room {{$randomInt}}",
+  "capacity": 10
 }
 
-### GET request to get a list of rooms
-GET http://localhost:8080/rooms/list
-Accept: application/json
+> {%
+    client.global.set("roomId", response.body.room.id);
+    client.log("Room ID saved: " + response.body.room.id);
+%}
 
-### POST request to create a schedule
-@roomId = 12615638-c7c4-47e4-a2b6-1fc472a2f897
+### 3. Create Schedule (Admin) - СОЗДАЕМ СЛОТЫ
 POST http://localhost:8080/rooms/{{roomId}}/schedule/create
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-  "daysOfWeek": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-  ],
-  "startTime": "10:00",
-  "endTime": "14:00"
+  "daysOfWeek": [1, 2, 3, 4, 5],
+  "startTime": "09:00",
+  "endTime": "10:00"
 }
 
-### GET request to get a list of slots for specified room and date
-@date=2026-04-05
-GET http://localhost:8080/rooms/{{roomId}}/slots/list?date=2026-04-09
+### 4. Dummy Login (User) - ПОЛУЧАЕМ ТОКЕН ЮЗЕРА
+# @name userLogin
+POST http://localhost:8080/dummyLogin
+Content-Type: application/json
+
+{ "role": "user" }
+
+> {%
+    client.global.set("userToken", response.body.token);
+%}
+
+### 5. List Slots - ПОЛУЧАЕМ ID СЛОТА
+# @name listSlots
+GET http://localhost:8080/rooms/{{roomId}}/slots/list?date=2026-04-10
+Authorization: Bearer {{userToken}}
+
+> {%
+    client.global.set("slotId", response.body.slots[0].id);
+    client.log("Slot ID saved: " + response.body.slots[0].id);
+%}
+
+### 6. Create Booking (User) - ФИНАЛЬНЫЙ ТЕСТ
+POST http://localhost:8080/bookings
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "slotId": "{{slotId}}",
+  "createConferenceLink": false
+}
