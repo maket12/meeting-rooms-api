@@ -117,11 +117,11 @@ func (s *UserRepoSuite) SetupTest() {
 
 func (s *UserRepoSuite) TestCreateGet() {
 	// Create a test user at first
-	user, err := s.repo.Create(s.ctx, s.testUser)
+	_, err := s.repo.Create(s.ctx, s.testUser)
 	s.Require().NoError(err)
 
 	// Then get him by id
-	user, err = s.repo.GetByID(s.ctx, s.testUser.ID())
+	user, err := s.repo.GetByID(s.ctx, s.testUser.ID())
 	s.Require().NoError(err)
 	s.Require().NotNil(user)
 	s.Require().Exactly(s.testUser.Email(), user.Email())

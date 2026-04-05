@@ -111,17 +111,13 @@ func (h *BookingHandler) ListAllBookings(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *BookingHandler) handleError(w http.ResponseWriter, r *http.Request, err error, logMsg string) {
-	status, code, msg := mapper.HttpError(err)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"error": map[string]string{
-			"code":    code,
-			"message": msg,
-		},
-	})
+	status, msg, internalErr := mapper.HttpError(err)
+	h.log.ErrorContext(r.Context(), logMsg,
+		slog.Int("status", status),
+		slog.String("public_msg", msg),
+		slog.Any("cause", internalErr),
+	)
+	http.Error(w, msg, status)
 }
 
 func (h *BookingHandler) respond(w http.ResponseWriter, status int, data any) {
