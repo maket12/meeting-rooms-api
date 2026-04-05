@@ -54,8 +54,8 @@ func (q *Queries) CreateUser(ctx context.Context, db DBTX, arg CreateUserParams)
 const ensureDummyUsers = `-- name: EnsureDummyUsers :exec
 INSERT INTO users (id, email, password_hash, role, created_at)
 VALUES
-    ($1, 'admin@avito.com', 'password', 'admin', NOW()),
-    ($2, 'user@avito.com', 'password', 'user', NOW())
+    ($1, 'admin@avito.com', 'password', 'admin', (NOW() AT TIME ZONE 'UTC')),
+    ($2, 'user@avito.com', 'password', 'user', (NOW() AT TIME ZONE 'UTC'))
 ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
     role = EXCLUDED.role

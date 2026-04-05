@@ -183,6 +183,10 @@ func TestSchedule_CreateSlots_ExcludingCurrentDay(t *testing.T) {
 		currWeekDay = int(time.Now().UTC().Weekday())
 	)
 
+	if currWeekDay == 0 {
+		currWeekDay = 7
+	}
+
 	for d = 1; d <= 7; d += 1 {
 		if d != currWeekDay {
 			days = append(days, d)

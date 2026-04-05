@@ -62,3 +62,7 @@ Content-Type: application/json
   "startTime": "10:00",
   "endTime": "14:00"
 }
+
+### GET request to get a list of slots for specified room and date
+@date=2026-04-05
+GET http://localhost:8080/rooms/{{roomId}}/slots/list?date=2026-04-09

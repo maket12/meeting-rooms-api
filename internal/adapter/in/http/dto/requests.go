@@ -27,3 +27,17 @@ type CreateScheduleRequest struct {
 	StartTime  string `json:"startTime"`
 	EndTime    string `json:"endTime"`
 }
+
+type ListSlotsRequest struct {
+	RoomID string `json:"roomId"`
+	Date   string `json:"date"`
+}
+
+type CreateBookingRequest struct {
+	SlotID               string `json:"slotId"`
+	CreateConferenceLink bool   `json:"createConferenceLink"`
+}
+
+type CancelBookingRequest struct {
+	BookingID string `json:"bookingId"`
+}

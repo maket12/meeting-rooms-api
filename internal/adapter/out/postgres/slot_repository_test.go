@@ -19,25 +19,25 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type ScheduleRepoSuite struct {
+type SlotRepoSuite struct {
 	suite.Suite
-	dbClient     *pkgpostgres.Client
-	repo         *adapterpostgres.ScheduleRepository
-	ctx          context.Context
-	migrate      *migrate.Migrate
-	testSchedule *model.Schedule
+	dbClient  *pkgpostgres.Client
+	repo      *adapterpostgres.SlotRepository
+	ctx       context.Context
+	migrate   *migrate.Migrate
+	testSlots []*model.Slot
 }
 
-func TestScheduleRepoSuite(t *testing.T) {
+func TestSlotRepoSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
-	suite.Run(t, new(ScheduleRepoSuite))
+	suite.Run(t, new(SlotRepoSuite))
 }
 
-func (s *ScheduleRepoSuite) setupDatabase() {
+func (s *SlotRepoSuite) setupDatabase() {
 	// Version of the lowest migration to apply
-	const targetVersion = 3
+	const targetVersion = 5
 
 	dbConfig := pkgpostgres.NewConfig(
 		"localhost", 5433, "test-user",
@@ -90,32 +90,36 @@ func (s *ScheduleRepoSuite) setupDatabase() {
 	}
 }
 
-func (s *ScheduleRepoSuite) SetupSuite() {
+func (s *SlotRepoSuite) SetupSuite() {
 	s.ctx = context.Background()
 	s.setupDatabase()
-	s.repo = adapterpostgres.NewScheduleRepository(
+	s.repo = adapterpostgres.NewSlotRepository(
 		s.dbClient,
 		trmpgx.DefaultCtxGetter,
 	)
 
-	// Create a room in the rooms table
-	testRoom, _ := model.NewRoom("№100", nil, nil)
+	// Create rooms in advance
+	room1, _ := model.NewRoom("212", nil, nil)
+	room2, _ := model.NewRoom("213", nil, nil)
 
 	roomsRepo := adapterpostgres.NewRoomRepository(
 		s.dbClient,
 		trmpgx.DefaultCtxGetter,
 	)
-	_, _ = roomsRepo.Create(s.ctx, testRoom)
+	_, _ = roomsRepo.Create(s.ctx, room1)
+	_, _ = roomsRepo.Create(s.ctx, room2)
 
-	s.testSchedule, _ = model.NewSchedule(
-		testRoom.ID(),
-		[]int{1, 3, 5},
-		"10:00",
-		"11:00",
-	)
+	// Now we can create slots
+	startTime := time.Now().UTC()
+
+	slot1, _ := model.NewSlot(room1.ID(), startTime)
+	slot2, _ := model.NewSlot(room1.ID(), startTime.Add(30*time.Minute))
+	slot3, _ := model.NewSlot(room2.ID(), startTime)
+
+	s.testSlots = []*model.Slot{slot1, slot2, slot3}
 }
 
-func (s *ScheduleRepoSuite) TearDownSuite() {
+func (s *SlotRepoSuite) TearDownSuite() {
 	if s.migrate != nil {
 		if err := s.migrate.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 			s.Require().NoError(err, "failed to migrate down")
@@ -124,33 +128,69 @@ func (s *ScheduleRepoSuite) TearDownSuite() {
 	s.dbClient.Close()
 }
 
-func (s *ScheduleRepoSuite) SetupTest() {
-	_, err := s.dbClient.Pool.Exec(s.ctx, "TRUNCATE TABLE schedules CASCADE")
+func (s *SlotRepoSuite) SetupTest() {
+	_, err := s.dbClient.Pool.Exec(s.ctx, "TRUNCATE TABLE slots CASCADE")
 	s.Require().NoError(err)
 }
 
-func (s *ScheduleRepoSuite) TestCreateGet() {
-	// Create a test schedule at first
-	schedule, err := s.repo.Create(s.ctx, s.testSchedule)
+func (s *SlotRepoSuite) TestCreateBatchGet() {
+	// Create slots
+	err := s.repo.CreateBatch(s.ctx, s.testSlots)
 	s.Require().NoError(err)
-	s.Require().NotNil(schedule)
 
-	// Then get it by room id
-	schedule, err = s.repo.Get(s.ctx, s.testSchedule.RoomID())
-	s.Require().NoError(err)
-	s.Require().NotNil(schedule)
-	s.Require().Exactly(s.testSchedule.ID(), schedule.ID())
-	s.Require().ElementsMatch(s.testSchedule.DaysOfWeek(), schedule.DaysOfWeek())
-	s.Require().Exactly(s.testSchedule.StartTime(), schedule.StartTime())
-	s.Require().Exactly(s.testSchedule.EndTime(), schedule.EndTime())
+	// Get them by their ids
+	for _, testSlot := range s.testSlots {
+		slot, err := s.repo.Get(s.ctx, testSlot.ID())
+		s.Require().NoError(err)
+		s.Require().NotNil(slot)
+
+		s.Equal(testSlot.RoomID(), slot.RoomID())
+		s.Equal(testSlot.Start().Round(time.Second), slot.Start().Round(time.Second))
+		s.Equal(testSlot.End().Round(time.Second), slot.End().Round(time.Second))
+	}
 }
 
-func (s *ScheduleRepoSuite) TestGet_NotFound() {
-	// Try to get a non-existing schedule by room id
-	var unexistingRoomID = uuid.New()
-	schedule, err := s.repo.Get(s.ctx, unexistingRoomID)
+func (s *SlotRepoSuite) TestGet_NotFound() {
+	// Try to get a non-existing slot by id
+	var unexistingID = uuid.New()
+	slot, err := s.repo.Get(s.ctx, unexistingID)
 
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, pkgerrs.ErrObjectNotFound)
-	s.Require().Nil(schedule)
+	s.Require().Nil(slot)
+}
+
+func (s *SlotRepoSuite) TestListFree() {
+	// Create slots in advance
+	_ = s.repo.CreateBatch(s.ctx, s.testSlots)
+
+	// Case №1: get by room id of the first slot (expect 2 slots in result)
+	slots, err := s.repo.ListFree(
+		s.ctx,
+		s.testSlots[0].RoomID(),
+		s.testSlots[0].Start(),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(slots)
+	s.Require().Len(slots, 2)
+
+	// Case №2: get by room id of the third slot (expect 1 slot in result)
+	slots, err = s.repo.ListFree(
+		s.ctx,
+		s.testSlots[2].RoomID(),
+		s.testSlots[2].Start(),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(slots)
+	s.Require().Len(slots, 1)
+
+	// Case №2: specify too late date (expect 0 slots in result)
+	slots, err = s.repo.ListFree(
+		s.ctx,
+		s.testSlots[0].RoomID(),
+		s.testSlots[0].Start().Add(48*time.Hour),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(slots)
+	s.Require().Empty(slots)
 }

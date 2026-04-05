@@ -112,6 +112,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	createScheduleUC := usecase.NewCreateScheduleUC(
 		trManager, scheduleRepo, slotRepo,
 	)
+	listSlotsUC := usecase.NewListSlotsUC(trManager, slotRepo)
 
 	// Handlers
 	authHandler := adapterhttp.NewAuthHandler(
@@ -129,11 +130,16 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		logger,
 		createScheduleUC,
 	)
+	slotHandler := adapterhttp.NewSlotHandler(
+		logger,
+		listSlotsUC,
+	)
 
 	router := adapterhttp.NewRouter(
 		authHandler,
 		roomHandler,
 		scheduleHandler,
+		slotHandler,
 	).InitRoutes()
 
 	srv := &http.Server{

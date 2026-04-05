@@ -6,10 +6,21 @@ type Router struct {
 	Auth     *AuthHandler
 	Room     *RoomHandler
 	Schedule *ScheduleHandler
+	Slot     *SlotHandler
 }
 
-func NewRouter(auth *AuthHandler, room *RoomHandler, schedule *ScheduleHandler) *Router {
-	return &Router{Auth: auth, Room: room, Schedule: schedule}
+func NewRouter(
+	auth *AuthHandler,
+	room *RoomHandler,
+	schedule *ScheduleHandler,
+	slot *SlotHandler,
+) *Router {
+	return &Router{
+		Auth:     auth,
+		Room:     room,
+		Schedule: schedule,
+		Slot:     slot,
+	}
 }
 
 func (r *Router) InitRoutes() http.Handler {
@@ -23,6 +34,8 @@ func (r *Router) InitRoutes() http.Handler {
 	mux.HandleFunc("GET /rooms/list", r.Room.ListRooms)
 
 	mux.HandleFunc("POST /rooms/{roomId}/schedule/create", r.Schedule.CreateSchedule)
+
+	mux.HandleFunc("GET /rooms/{roomId}/slots/list", r.Slot.ListSlots)
 
 	var handler http.Handler = mux
 	handler = r.withLogger(handler)

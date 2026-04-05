@@ -15,8 +15,6 @@ import (
 )
 
 func TestMapRoomToSQLCCreate(t *testing.T) {
-	t.Parallel()
-
 	room, _ := model.NewRoom(
 		"Room №001",
 		utils.VPtr("The fancy and vibe area"),
@@ -25,7 +23,10 @@ func TestMapRoomToSQLCCreate(t *testing.T) {
 
 	mapped := mapper.MapRoomToSQLCCreate(room)
 
+	require.True(t, mapped.ID.Valid)
 	require.True(t, mapped.Description.Valid)
+	require.True(t, mapped.CreatedAt.Valid)
+
 	assert.Equal(t, [16]byte(room.ID()), mapped.ID.Bytes)
 	assert.Equal(t, room.Name(), mapped.Name)
 	assert.Equal(t, *room.Description(), mapped.Description.String)
@@ -34,8 +35,6 @@ func TestMapRoomToSQLCCreate(t *testing.T) {
 }
 
 func TestMapSQLCToRoom(t *testing.T) {
-	t.Parallel()
-
 	rawRoom := sqlc.Room{
 		ID: pgtype.UUID{
 			Bytes: uuid.New(),
@@ -68,8 +67,6 @@ func TestMapSQLCToRoom(t *testing.T) {
 }
 
 func TestMapSQLCToRoomsList(t *testing.T) {
-	t.Parallel()
-
 	rawRooms := []sqlc.Room{
 		{
 			ID: pgtype.UUID{

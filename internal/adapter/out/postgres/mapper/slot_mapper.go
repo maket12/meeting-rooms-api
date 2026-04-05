@@ -38,8 +38,8 @@ func MapSQLCToSlot(rawSlot sqlc.Slot) *model.Slot {
 	return model.RestoreSlot(
 		rawSlot.ID.Bytes,
 		rawSlot.RoomID.Bytes,
-		rawSlot.StartTime.Time,
-		rawSlot.EndTime.Time,
+		rawSlot.StartTime.Time.UTC(),
+		rawSlot.EndTime.Time.UTC(),
 	)
 }
 

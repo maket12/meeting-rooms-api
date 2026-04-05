@@ -8,4 +8,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_active_slot
+ON bookings (slot_id)
+WHERE (status = 'active');
+
 CREATE INDEX IF NOT EXISTS idx_bookings_user_active ON bookings (user_id) WHERE (status = 'active');

@@ -9,11 +9,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMapScheduleToSQLCCreate(t *testing.T) {
-	t.Parallel()
-
 	schedule, _ := model.NewSchedule(
 		uuid.New(),
 		[]int{1, 3, 5},
@@ -23,6 +22,9 @@ func TestMapScheduleToSQLCCreate(t *testing.T) {
 
 	mapped := mapper.MapScheduleToSQLCCreate(schedule)
 
+	require.True(t, mapped.ID.Valid)
+	require.True(t, mapped.RoomID.Valid)
+
 	assert.Equal(t, [16]byte(schedule.ID()), mapped.ID.Bytes)
 	assert.Equal(t, [16]byte(schedule.RoomID()), mapped.RoomID.Bytes)
 	assert.Equal(t, len(schedule.DaysOfWeek()), len(mapped.DaysOfWeek))
@@ -31,8 +33,6 @@ func TestMapScheduleToSQLCCreate(t *testing.T) {
 }
 
 func TestMapSQLCToSchedule(t *testing.T) {
-	t.Parallel()
-
 	rawSchedule := sqlc.Schedule{
 		ID: pgtype.UUID{
 			Bytes: uuid.New(),

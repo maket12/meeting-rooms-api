@@ -6,4 +6,6 @@ type CreateRoomInput struct {
 	Capacity    *int
 }
 
-type CreateRoomOutput Room
+type CreateRoomOutput struct {
+	Room Room
+}

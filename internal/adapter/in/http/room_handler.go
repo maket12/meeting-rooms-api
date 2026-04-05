@@ -50,7 +50,7 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.log.InfoContext(r.Context(), "created room",
-		slog.String("id", out.ID.String()),
+		slog.String("id", out.Room.ID.String()),
 	)
 
 	w.Header().Set("Content-Type", "application/json")

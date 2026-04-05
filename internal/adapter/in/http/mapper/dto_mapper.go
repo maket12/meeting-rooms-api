@@ -67,8 +67,9 @@ func MapRequestToCreateRoom(request httpdto.CreateRoomRequest) appdto.CreateRoom
 }
 
 func MapCreateRoomToResponse(output appdto.CreateRoomOutput) httpdto.CreateRoomResponse {
-	room := appdto.Room(output)
-	return httpdto.CreateRoomResponse(MapRoomToResponse(room))
+	return httpdto.CreateRoomResponse{
+		Room: MapRoomToResponse(output.Room),
+	}
 }
 
 func MapListRoomsToResponse(output appdto.ListRoomsOutput) httpdto.ListRoomsResponse {
@@ -102,5 +103,95 @@ func MapRequestToCreateSchedule(request httpdto.CreateScheduleRequest) appdto.Cr
 func MapCreateScheduleToResponse(output appdto.CreateScheduleOutput) httpdto.CreateScheduleResponse {
 	return httpdto.CreateScheduleResponse{
 		Schedule: MapScheduleToResponse(output.Schedule),
+	}
+}
+
+func MapRequestToListSlots(request httpdto.ListSlotsRequest) (appdto.ListSlotsInput, error) {
+	date, err := time.Parse("2006-01-02", request.Date)
+	if err != nil {
+		return appdto.ListSlotsInput{}, err
+	}
+
+	return appdto.ListSlotsInput{
+		RoomID: uuid.MustParse(request.RoomID),
+		Date:   date,
+	}, nil
+}
+
+func MapSlotToResponse(slot appdto.Slot) httpdto.SlotResponse {
+	return httpdto.SlotResponse{
+		ID:     slot.ID.String(),
+		RoomID: slot.RoomID.String(),
+		Start:  slot.Start.String(),
+		End:    slot.End.String(),
+	}
+}
+
+func MapListSlotsToResponse(output appdto.ListSlotsOutput) httpdto.ListSlotsResponse {
+	slots := make([]httpdto.SlotResponse, len(output.Slots))
+	for i := range slots {
+		slots[i] = MapSlotToResponse(output.Slots[i])
+	}
+
+	return httpdto.ListSlotsResponse{Slots: slots}
+}
+
+func MapBookingToResponse(booking appdto.Booking) httpdto.BookingResponse {
+	return httpdto.BookingResponse{
+		ID:             booking.ID.String(),
+		SlotID:         booking.SlotID.String(),
+		UserID:         booking.UserID.String(),
+		Status:         booking.Status,
+		ConferenceLink: booking.ConferenceLink,
+		CreatedAt:      booking.CreatedAt.Format(time.RFC3339),
+	}
+}
+
+func MapRequestToCreateBooking(request httpdto.CreateBookingRequest, userID uuid.UUID) appdto.CreateBookingInput {
+	return appdto.CreateBookingInput{
+		SlotID:               uuid.MustParse(request.SlotID),
+		UserID:               userID,
+		CreateConferenceLink: request.CreateConferenceLink,
+	}
+}
+
+func MapCreateBookingToResponse(output appdto.CreateBookingOutput) httpdto.CreateBookingResponse {
+	return httpdto.CreateBookingResponse{
+		Booking: MapBookingToResponse(output.Booking),
+	}
+}
+
+func MapCancelBookingToResponse(output appdto.CancelBookingOutput) httpdto.CancelBookingResponse {
+	return httpdto.CancelBookingResponse{
+		Booking: MapBookingToResponse(output.Booking),
+	}
+}
+
+func MapBookingsToResponse(bookings []appdto.Booking) []httpdto.BookingResponse {
+	response := make([]httpdto.BookingResponse, len(bookings))
+	for i := range bookings {
+		response[i] = MapBookingToResponse(bookings[i])
+	}
+	return response
+}
+
+func MapListMyBookingsToResponse(output appdto.ListMyBookingsOutput) httpdto.ListMyBookingsResponse {
+	return httpdto.ListMyBookingsResponse{
+		Bookings: MapBookingsToResponse(output.Bookings),
+	}
+}
+
+func MapPaginationToResponse(pagination appdto.Pagination) httpdto.PaginationResponse {
+	return httpdto.PaginationResponse{
+		Page:     pagination.Page,
+		PageSize: pagination.PageSize,
+		Total:    pagination.Total,
+	}
+}
+
+func MapListToResponse(output appdto.ListBookingsOutput) httpdto.ListBookingsResponse {
+	return httpdto.ListBookingsResponse{
+		Bookings:   MapBookingsToResponse(output.Bookings),
+		Pagination: MapPaginationToResponse(output.Pagination),
 	}
 }

@@ -181,10 +181,8 @@ func (s *Schedule) createSlotsForDay(
 }
 
 func (s *Schedule) CreateSlots() ([]*Slot, error) {
-	var (
-		slots []*Slot
-		err   error
-	)
+	var err error
+	slots := make([]*Slot, 0)
 
 	// Round the time to not care about hours and minutes
 	from := time.Now().UTC().Round(dayVal)

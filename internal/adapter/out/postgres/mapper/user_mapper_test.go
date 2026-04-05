@@ -14,8 +14,6 @@ import (
 )
 
 func TestMapUserToSQLCCreate(t *testing.T) {
-	t.Parallel()
-
 	user, _ := model.NewUser(
 		"amazing-email@avito.ru",
 		"new-pass",
@@ -23,6 +21,9 @@ func TestMapUserToSQLCCreate(t *testing.T) {
 	)
 
 	mapped := mapper.MapUserToSQLCCreate(user)
+
+	require.True(t, mapped.ID.Valid)
+	require.True(t, mapped.CreatedAt.Valid)
 
 	assert.Equal(t, [16]byte(user.ID()), mapped.ID.Bytes)
 	assert.Equal(t, user.Email(), mapped.Email)
@@ -32,8 +33,6 @@ func TestMapUserToSQLCCreate(t *testing.T) {
 }
 
 func TestMapSQLCToUser(t *testing.T) {
-	t.Parallel()
-
 	rawUser := sqlc.User{
 		ID: pgtype.UUID{
 			Bytes: uuid.New(),

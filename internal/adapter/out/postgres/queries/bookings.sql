@@ -34,14 +34,17 @@ WHERE id = @id;
 
 -- name: ListBookingsByUserID :many
 SELECT
-    id,
-    slot_id,
-    user_id,
-    status,
-    conference_link,
-    created_at
-FROM bookings
-WHERE user_id = @user_id;
+    b.id,
+    b.slot_id,
+    b.user_id,
+    b.status,
+    b.conference_link,
+    b.created_at
+FROM bookings b
+JOIN slots s ON b.slot_id = s.id
+WHERE b.user_id = @user_id
+    AND s.start_time >= (NOW() AT TIME ZONE 'UTC')
+ORDER BY s.start_time;
 
 -- name: ListAllBookings :many
 SELECT

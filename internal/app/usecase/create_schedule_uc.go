@@ -13,12 +13,14 @@ import (
 
 type CreateScheduleUC struct {
 	trManager trm.Manager
+	room      port.RoomRepository
 	schedule  port.ScheduleRepository
 	slot      port.SlotRepository
 }
 
 func NewCreateScheduleUC(
 	trManager trm.Manager,
+	room port.RoomRepository,
 	schedule port.ScheduleRepository,
 	slot port.SlotRepository,
 ) *CreateScheduleUC {
@@ -63,7 +65,7 @@ func (uc *CreateScheduleUC) Execute(ctx context.Context, in dto.CreateScheduleIn
 
 		return nil
 	})
-	
+
 	if err != nil {
 		return dto.CreateScheduleOutput{}, err
 	}

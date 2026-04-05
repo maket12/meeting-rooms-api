@@ -55,10 +55,10 @@ func MapSQLCToRoom(rawRoom sqlc.Room) *model.Room {
 }
 
 func MapSQLCToRoomsList(rawRooms []sqlc.Room) []*model.Room {
-	rooms := make([]*model.Room, 0, len(rawRooms))
-	for _, rawRoom := range rawRooms {
-		mappedRoom := MapSQLCToRoom(rawRoom)
-		rooms = append(rooms, mappedRoom)
+	rooms := make([]*model.Room, len(rawRooms))
+	for i := range rooms {
+		mapped := MapSQLCToRoom(rawRooms[i])
+		rooms[i] = mapped
 	}
 	return rooms
 }

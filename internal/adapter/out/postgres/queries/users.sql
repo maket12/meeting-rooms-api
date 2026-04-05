@@ -33,8 +33,8 @@ WHERE email = @email;
 -- name: EnsureDummyUsers :exec
 INSERT INTO users (id, email, password_hash, role, created_at)
 VALUES
-    (@admin_id, 'admin@avito.com', 'password', 'admin', NOW()),
-    (@user_id, 'user@avito.com', 'password', 'user', NOW())
+    (@admin_id, 'admin@avito.com', 'password', 'admin', (NOW() AT TIME ZONE 'UTC')),
+    (@user_id, 'user@avito.com', 'password', 'user', (NOW() AT TIME ZONE 'UTC'))
 ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
     role = EXCLUDED.role;
