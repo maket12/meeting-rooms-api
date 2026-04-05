@@ -1,4 +1,11 @@
-### 1. Dummy Login (Admin) - ПОЛУЧАЕМ ТОКЕН
+### =================================================================
+### 1. АВТОРИЗАЦИЯ И ОБЩИЕ МЕТОДЫ
+### =================================================================
+
+### 1.1. Инфо (Healthcheck)
+GET http://localhost:8080/_info
+
+### 1.2. Dummy Login (Admin)
 # @name adminLogin
 POST http://localhost:8080/dummyLogin
 Content-Type: application/json
@@ -7,37 +14,9 @@ Content-Type: application/json
 
 > {%
     client.global.set("adminToken", response.body.token);
-    client.log("Admin Token saved!");
 %}
 
-### 2. Create Room (Admin) - ПОЛУЧАЕМ ID КОМНАТЫ
-# @name createRoom
-POST http://localhost:8080/rooms/create
-Authorization: Bearer {{adminToken}}
-Content-Type: application/json
-
-{
-  "name": "Room {{$randomInt}}",
-  "capacity": 10
-}
-
-> {%
-    client.global.set("roomId", response.body.room.id);
-    client.log("Room ID saved: " + response.body.room.id);
-%}
-
-### 3. Create Schedule (Admin) - СОЗДАЕМ СЛОТЫ
-POST http://localhost:8080/rooms/{{roomId}}/schedule/create
-Authorization: Bearer {{adminToken}}
-Content-Type: application/json
-
-{
-  "daysOfWeek": [1, 2, 3, 4, 5],
-  "startTime": "09:00",
-  "endTime": "10:00"
-}
-
-### 4. Dummy Login (User) - ПОЛУЧАЕМ ТОКЕН ЮЗЕРА
+### 1.3. Dummy Login (User)
 # @name userLogin
 POST http://localhost:8080/dummyLogin
 Content-Type: application/json
@@ -48,22 +27,169 @@ Content-Type: application/json
     client.global.set("userToken", response.body.token);
 %}
 
-### 5. List Slots - ПОЛУЧАЕМ ID СЛОТА
+### 1.4. Dummy Login (Ошибка 400 - Неверная роль)
+POST http://localhost:8080/dummyLogin
+Content-Type: application/json
+
+{ "role": "super-hacker" }
+
+
+### =================================================================
+### 2. УПРАВЛЕНИЕ ПЕРЕГОВОРКАМИ (ROOMS)
+### =================================================================
+
+### 2.1. Создать переговорку (Позитив)
+# @name createRoom
+POST http://localhost:8080/rooms/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Neon Conference Room",
+  "description": "High-tech room for startup pitches",
+  "capacity": 12
+}
+
+> {%
+    client.global.set("roomId", response.body.room.id);
+%}
+
+### 2.2. Список всех переговорок
+GET http://localhost:8080/rooms/list
+Authorization: Bearer {{userToken}}
+
+### 2.3. Ошибка 403: User пытается создать переговорку
+POST http://localhost:8080/rooms/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{ "name": "Forbidden Room" }
+
+
+### =================================================================
+### 3. РАСПИСАНИЕ (SCHEDULES)
+### =================================================================
+
+### 3.1. Создать расписание (Позитив)
+# Пн-Пт с 09:00 до 18:00
+POST http://localhost:8080/rooms/{{roomId}}/schedule/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "roomId": "{{roomId}}",
+  "daysOfWeek": [1, 2, 3, 4, 5],
+  "startTime": "09:00",
+  "endTime": "18:00"
+}
+
+### 3.2. Ошибка 409: Повторное создание расписания
+POST http://localhost:8080/rooms/{{roomId}}/schedule/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "roomId": "{{roomId}}",
+  "daysOfWeek": [6, 7],
+  "startTime": "10:00",
+  "endTime": "12:00"
+}
+
+### 3.3. Ошибка 404: Расписание для несуществующей комнаты
+POST http://localhost:8080/rooms/00000000-0000-0000-0000-000000000000/schedule/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "roomId": "00000000-0000-0000-0000-000000000000",
+  "daysOfWeek": [1],
+  "startTime": "10:00",
+  "endTime": "11:00"
+}
+
+
+### =================================================================
+### 4. СЛОТЫ (SLOTS)
+### =================================================================
+
+### 4.1. Список слотов (Позитив - триггерит генерацию, если их нет)
 # @name listSlots
-GET http://localhost:8080/rooms/{{roomId}}/slots/list?date=2026-04-10
+GET http://localhost:8080/rooms/{{roomId}}/slots/list?date=2026-06-15
 Authorization: Bearer {{userToken}}
 
 > {%
-    client.global.set("slotId", response.body.slots[0].id);
-    client.log("Slot ID saved: " + response.body.slots[0].id);
+    if (response.body.slots && response.body.slots.length > 0) {
+        client.global.set("slotId", response.body.slots[0].id);
+        client.global.set("secondSlotId", response.body.slots[1].id);
+    }
 %}
 
-### 6. Create Booking (User) - ФИНАЛЬНЫЙ ТЕСТ
-POST http://localhost:8080/bookings
+### 4.2. Ошибка 400: Запрос списка слотов без даты
+GET http://localhost:8080/rooms/{{roomId}}/slots/list
+Authorization: Bearer {{userToken}}
+
+
+### =================================================================
+### 5. БРОНИРОВАНИЕ (BOOKINGS)
+### =================================================================
+
+### 5.1. Создать бронь (Позитив)
+# @name createBooking
+POST http://localhost:8080/bookings/create
 Authorization: Bearer {{userToken}}
 Content-Type: application/json
 
 {
   "slotId": "{{slotId}}",
-  "createConferenceLink": false
+  "createConferenceLink": true
 }
+
+> {%
+    client.global.set("bookingId", response.body.booking.id);
+%}
+
+### 5.2. Ошибка 409: Слот уже занят
+POST http://localhost:8080/bookings/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "slotId": "{{slotId}}"
+}
+
+### 5.3. Ошибка 403: Администратор не может бронировать
+POST http://localhost:8080/bookings/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "slotId": "{{secondSlotId}}"
+}
+
+### 5.4. Список своих броней (User) - Только будущие
+GET http://localhost:8080/bookings/my
+Authorization: Bearer {{userToken}}
+
+### 5.5. Список всех броней (Admin) + пагинация
+GET http://localhost:8080/bookings/list?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+
+### =================================================================
+### 6. ОТМЕНА БРОНИ (CANCELLATION) И ИДЕМПОТЕНТНОСТЬ
+### =================================================================
+
+### 6.1. Отмена своей брони (Позитив)
+POST http://localhost:8080/bookings/{{bookingId}/cancel
+Authorization: Bearer {{userToken}}
+
+### 6.2. Идемпотентность: Повторная отмена той же брони (Должно быть 200 OK)
+POST http://localhost:8080/bookings/{{bookingId}/cancel
+Authorization: Bearer {{userToken}}
+
+### 6.3. Ошибка 404: Отмена несуществующей брони
+POST http://localhost:8080/bookings/00000000-0000-0000-0000-000000000000/cancel
+Authorization: Bearer {{userToken}}
+
+### 6.4. Ошибка 401: Отмена без токена
+POST http://localhost:8080/bookings/{{bookingId}/cancel

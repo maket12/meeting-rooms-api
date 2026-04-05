@@ -160,13 +160,13 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		slotHandler,
 		bookingHandler,
 		jwtGen,
-	).InitRoutes([]byte(cfg.AuthSecret), logger)
+	).InitRoutes(logger)
 
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: router,
 
-		BaseContext: func(_ net.Listener) context.Context { // any чтобы не тянуть net.Listener в импорты
+		BaseContext: func(_ net.Listener) context.Context {
 			return ctx
 		},
 	}

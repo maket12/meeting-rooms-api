@@ -38,7 +38,12 @@ func NewBookingHandler(
 }
 
 func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
-	userID, _ := r.Context().Value("user_id").(uuid.UUID)
+	userID, ok := r.Context().Value(UserIDKey).(uuid.UUID)
+
+	if !ok {
+		http.Error(w, "unauthorized: user id not found in context", http.StatusUnauthorized)
+		return
+	}
 
 	var req httpdto.CreateBookingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -60,7 +65,7 @@ func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
-	userID, _ := r.Context().Value("user_id").(uuid.UUID)
+	userID, _ := r.Context().Value(UserIDKey).(uuid.UUID)
 	bookingIDStr := r.PathValue("bookingId")
 	bookingID, _ := uuid.Parse(bookingIDStr)
 
@@ -78,7 +83,7 @@ func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BookingHandler) ListMyBookings(w http.ResponseWriter, r *http.Request) {
-	userID, _ := r.Context().Value("user_id").(uuid.UUID)
+	userID, _ := r.Context().Value(UserIDKey).(uuid.UUID)
 
 	out, err := h.listMyBookingsUC.Execute(r.Context(), userID)
 	if err != nil {

@@ -10,11 +10,11 @@ import (
 
 type Config struct {
 	// Postgres
-	DbHost     string `env:"DB_HOST,required"`
+	DbHost     string `env:"DB_HOST" envDefault:"localhost"`
 	DbPort     int    `env:"DB_PORT" envDefault:"5432"`
-	DbUser     string `env:"DB_USER,required"`
-	DbPassword string `env:"DB_PASSWORD,required"`
-	DBName     string `env:"DB_NAME,required"`
+	DbUser     string `env:"DB_USER" envDefault:"meeting-rooms-user"`
+	DbPassword string `env:"DB_PASSWORD" envDefault:"meeting-rooms-password"`
+	DBName     string `env:"DB_NAME" envDefault:"meeting-rooms-db"`
 	DbSSLMode  string `env:"DB_SSL_MODE" envDefault:"prefer"`
 
 	DbMaxConn         int           `env:"DB_MAX_CONNECTIONS" envDefault:"30"`
@@ -23,7 +23,7 @@ type Config struct {
 	DbMaxConnIdleTime time.Duration `env:"DB_MAX_CONNECTION_IDLETIME" envDefault:"5m"`
 
 	// Auth constants
-	AuthSecret   string        `env:"AUTH_SECRET,required"`
+	AuthSecret   string        `env:"AUTH_SECRET" envDefault:"super-secret-token"`
 	AuthTTL      time.Duration `env:"AUTH_TTL" envDefault:"1h"`
 	DummyAdminID uuid.UUID     `env:"DUMMY_ADMIN_ID" envDefault:"00000000-0000-0000-0000-000000000001"`
 	DummyUserID  uuid.UUID     `env:"DUMMY_USER_ID" envDefault:"00000000-0000-0000-0000-000000000002"`

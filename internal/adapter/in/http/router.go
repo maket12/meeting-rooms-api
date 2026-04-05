@@ -44,7 +44,7 @@ func NewRouter(
 	}
 }
 
-func (r *Router) InitRoutes(jwtSecret []byte, log *slog.Logger) http.Handler {
+func (r *Router) InitRoutes(log *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
 
 	// Public routes
@@ -60,11 +60,10 @@ func (r *Router) InitRoutes(jwtSecret []byte, log *slog.Logger) http.Handler {
 
 	mux.Handle("GET /rooms/{roomId}/slots/list", r.withAuth(http.HandlerFunc(r.Slot.ListSlots)))
 
-	mux.Handle("POST /bookings", r.withAuth(r.withRole("user", http.HandlerFunc(r.Booking.CreateBooking))))
-	mux.Handle("DELETE /bookings/{bookingId}", r.withAuth(r.withRole("user", http.HandlerFunc(r.Booking.CancelBooking))))
-	mux.Handle("GET /bookings/my", r.withAuth(r.withRole("user", http.HandlerFunc(r.Booking.ListMyBookings))))
-
+	mux.Handle("POST /bookings/create", r.withAuth(r.withRole("user", http.HandlerFunc(r.Booking.CreateBooking))))
 	mux.Handle("GET /bookings/list", r.withAuth(r.withRole("admin", http.HandlerFunc(r.Booking.ListAllBookings))))
+	mux.Handle("GET /bookings/my", r.withAuth(r.withRole("user", http.HandlerFunc(r.Booking.ListMyBookings))))
+	mux.Handle("POST /bookings/{bookingId}/cancel", r.withAuth(r.withRole("user", http.HandlerFunc(r.Booking.CancelBooking))))
 
 	var handler http.Handler = mux
 	handler = r.withLogger(log, handler)
