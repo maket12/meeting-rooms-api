@@ -5,6 +5,6 @@ import (
 )
 
 type TokenGenerator interface {
-	GenerateToken(userID uuid.UUID, role string) (string, error)
-	ValidateToken(token string) (uuid.UUID, string, error)
+	Generate(userID uuid.UUID, role string) (string, error)
+	Validate(token string) (uuid.UUID, string, error)
 }

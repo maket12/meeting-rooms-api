@@ -27,7 +27,7 @@ func NewTokenGenerator(secret string, ttl time.Duration) *TokenGenerator {
 	}
 }
 
-func (gen *TokenGenerator) GenerateToken(userID uuid.UUID, role string) (string, error) {
+func (gen *TokenGenerator) Generate(userID uuid.UUID, role string) (string, error) {
 	accessClaims := CustomClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   userID.String(),
@@ -47,7 +47,7 @@ func (gen *TokenGenerator) GenerateToken(userID uuid.UUID, role string) (string,
 	return accessStr, nil
 }
 
-func (gen *TokenGenerator) parseToken(token string) (*CustomClaims, error) {
+func (gen *TokenGenerator) parse(token string) (*CustomClaims, error) {
 	claims := &CustomClaims{}
 
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
@@ -59,14 +59,14 @@ func (gen *TokenGenerator) parseToken(token string) (*CustomClaims, error) {
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Name}), jwt.WithLeeway(leewayVal))
 
 	if err != nil || !parsedToken.Valid {
-		return nil, fmt.Errorf("failed to parse access token: %w", err)
+		return nil, fmt.Errorf("failed to parse token: %w", err)
 	}
 
 	return claims, nil
 }
 
-func (gen *TokenGenerator) ValidateToken(token string) (uuid.UUID, string, error) {
-	claims, err := gen.parseToken(token)
+func (gen *TokenGenerator) Validate(token string) (uuid.UUID, string, error) {
+	claims, err := gen.parse(token)
 	if err != nil {
 		return uuid.Nil, "", err
 	}

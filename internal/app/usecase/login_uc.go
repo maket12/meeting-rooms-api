@@ -44,7 +44,7 @@ func (uc *LoginUC) Execute(ctx context.Context, in dto.LoginInput) (dto.LoginOut
 	}
 
 	// Generate the JWT token
-	token, err := uc.token.GenerateToken(user.ID(), user.Role().String())
+	token, err := uc.token.Generate(user.ID(), user.Role().String())
 	if err != nil {
 		return dto.LoginOutput{}, ucerrs.Wrap(
 			ucerrs.ErrGenerateToken,

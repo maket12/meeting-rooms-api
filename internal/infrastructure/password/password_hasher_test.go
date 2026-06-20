@@ -1,7 +1,7 @@
-package hasher_test
+package password_test
 
 import (
-	"MeetingRoomsAPI/internal/infrastructure/hasher"
+	"backend/internal/infrastructure/password"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,8 +9,6 @@ import (
 )
 
 func TestPasswordHasher_Hash(t *testing.T) {
-	t.Parallel()
-
 	type testCase struct {
 		name     string
 		password string
@@ -31,11 +29,11 @@ func TestPasswordHasher_Hash(t *testing.T) {
 	}
 
 	const hashCost = 4
-	var passwordHasher = hasher.NewPasswordHasher(hashCost)
+	var hasher = password.NewHasher(hashCost)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hash, err := passwordHasher.Hash(tt.password)
+			hash, err := hasher.Hash(tt.password)
 			if tt.wantErr {
 				require.Error(t, err)
 				assert.Empty(t, hash)
@@ -48,26 +46,24 @@ func TestPasswordHasher_Hash(t *testing.T) {
 }
 
 func TestPasswordHasher_Compare(t *testing.T) {
-	t.Parallel()
-
 	const hashCost = 4
-	var passwordHasher = hasher.NewPasswordHasher(hashCost)
+	var hasher = password.NewHasher(hashCost)
 
 	t.Run("success", func(t *testing.T) {
 		var (
-			password = "password-12345"
-			hash, _  = passwordHasher.Hash(password)
+			testPassword = "password-12345"
+			hash, _      = hasher.Hash(testPassword)
 		)
-		result := passwordHasher.Compare(hash, password)
+		result := hasher.Compare(hash, testPassword)
 		assert.True(t, result)
 	})
 
 	t.Run("fail - not equal", func(t *testing.T) {
 		var (
-			password = "password-12345"
-			hash     = "wrong-hash"
+			testPassword = "password-12345"
+			hash         = "wrong-hash"
 		)
-		result := passwordHasher.Compare(hash, password)
+		result := hasher.Compare(hash, testPassword)
 		assert.False(t, result)
 	})
 }

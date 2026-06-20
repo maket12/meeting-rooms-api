@@ -2,11 +2,12 @@ package mapper
 
 import (
 	ucerrs "MeetingRoomsAPI/internal/app/errs"
+	pkgerrs "MeetingRoomsAPI/pkg/errs"
 	"errors"
 	"net/http"
 )
 
-func HttpError(err error) (int, string, error) {
+func HttpError(err error) *pkgerrs.OutErr {
 	var w *ucerrs.WrappedError
 	if errors.As(err, &w) {
 		switch {
@@ -31,7 +32,10 @@ func HttpError(err error) (int, string, error) {
 			return http.StatusInternalServerError, w.Public.Error(), w.Reason
 
 		case errors.Is(err, ucerrs.ErrInvalidInput):
-			return http.StatusBadRequest, w.Public.Error(), w.Reason
+			return pkgerrs.NewOutError(
+				http.StatusBadRequest, "INVALID_REQUEST",
+				"invalid_request", w.Reason,
+			)
 
 		default:
 			return http.StatusInternalServerError, "internal error", w.Reason
@@ -53,7 +57,10 @@ func HttpError(err error) (int, string, error) {
 
 	case errors.Is(err, ucerrs.ErrUserAlreadyExists),
 		errors.Is(err, ucerrs.ErrCannotCreateBooking):
-		return http.StatusBadRequest, err.Error(), nil
+		return pkgerrs.NewOutError(
+			http.StatusBadRequest, "INVALID_REQUEST",
+			"invalid_request", err,
+		)
 
 	case errors.Is(err, ucerrs.ErrScheduleAlreadyExists):
 		return http.StatusConflict, err.Error(), nil

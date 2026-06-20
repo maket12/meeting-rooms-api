@@ -6,8 +6,8 @@ import (
 	adapterpg "MeetingRoomsAPI/internal/adapter/out/postgres"
 	"MeetingRoomsAPI/internal/app/usecase"
 	"MeetingRoomsAPI/internal/config"
-	infrahasher "MeetingRoomsAPI/internal/infrastructure/hasher"
 	infrajwt "MeetingRoomsAPI/internal/infrastructure/jwt"
+	infrapasswd "MeetingRoomsAPI/internal/infrastructure/password"
 	pkgpostgres "MeetingRoomsAPI/pkg/postgres"
 	"context"
 	"errors"
@@ -96,10 +96,10 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	bookingRepo := adapterpg.NewBookingRepository(pgClient, trmpgx.DefaultCtxGetter)
 	conferenceService := adapterconf.NewConferenceService("available")
 	jwtGen := infrajwt.NewTokenGenerator(cfg.AuthSecret, cfg.AuthTTL)
-	passHasher := infrahasher.NewPasswordHasher(cfg.PasswordCost)
+	passHasher := infrapasswd.NewHasher(cfg.PasswordCost)
 
 	// Adding seed-data
-	if err := userRepo.EnsureDummyUsers(ctx, cfg.DummyAdminID, cfg.DummyUserID); err != nil {
+	if err = userRepo.EnsureDummyUsers(ctx, cfg.DummyAdminID, cfg.DummyUserID); err != nil {
 		return fmt.Errorf("failed to add seed-data: %w", err)
 	}
 
@@ -119,10 +119,9 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		trManager, roomRepo, scheduleRepo, slotRepo,
 	)
 	createBookingUC := usecase.NewCreateBookingUC(
-		trManager,
-		slotRepo,
-		bookingRepo,
-		conferenceService)
+		trManager, slotRepo,
+		bookingRepo, conferenceService,
+	)
 	cancelBookingUC := usecase.NewCancelBookingUC(bookingRepo)
 	listMyBookingsUC := usecase.NewListMyBookingsUC(bookingRepo)
 	listBookingsUC := usecase.NewListBookingsUC(bookingRepo)
@@ -140,13 +139,9 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		listRoomsUC,
 	)
 	scheduleHandler := adapterhttp.NewScheduleHandler(
-		logger,
-		createScheduleUC,
+		logger, createScheduleUC,
 	)
-	slotHandler := adapterhttp.NewSlotHandler(
-		logger,
-		listSlotsUC,
-	)
+	slotHandler := adapterhttp.NewSlotHandler(logger, listSlotsUC)
 	bookingHandler := adapterhttp.NewBookingHandler(
 		logger,
 		createBookingUC,
@@ -176,8 +171,8 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	errCh := make(chan error, 1)
 
 	go func() {
-		logger.Info("starting server", slog.String("address", ":8080"))
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.InfoContext(ctx, "starting server", slog.String("address", ":8080"))
+		if err = srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 			return
 		}
@@ -186,26 +181,26 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 
 	select {
 	case <-ctx.Done():
-		logger.Info("shutdown signal received")
-	case err := <-errCh:
+		logger.InfoContext(ctx, "shutdown signal received")
+	case err = <-errCh:
 		if err != nil {
-			logger.Error("server failed", slog.Any("err", err))
+			logger.ErrorContext(ctx, "server failed", slog.Any("err", err))
 			return err
 		}
-		logger.Info("server stopped")
+		logger.InfoContext(ctx, "server stopped")
 		return nil
 	}
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
-	if err := srv.Shutdown(shutdownCtx); err != nil {
-		logger.Error("graceful shutdown failed", slog.Any("err", err))
+	if err = srv.Shutdown(shutdownCtx); err != nil {
+		logger.ErrorContext(ctx, "graceful shutdown failed", slog.Any("err", err))
 		_ = srv.Close() // fallback
 		return err
 	}
 
-	logger.Info("server exited properly")
+	logger.InfoContext(ctx, "server exited properly")
 	return nil
 }
 
@@ -220,7 +215,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	if err := runServer(ctx, cfg, logger); err != nil {
+	if err = runServer(ctx, cfg, logger); err != nil {
 		os.Exit(1)
 	}
 }

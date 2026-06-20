@@ -22,11 +22,11 @@ func (_m *MockTokenGenerator) EXPECT() *MockTokenGenerator_Expecter {
 }
 
 // GenerateToken provides a mock function with given fields: userID, role
-func (_m *MockTokenGenerator) GenerateToken(userID uuid.UUID, role string) (string, error) {
+func (_m *MockTokenGenerator) Generate(userID uuid.UUID, role string) (string, error) {
 	ret := _m.Called(userID, role)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GenerateToken")
+		panic("no return value specified for Generate")
 	}
 
 	var r0 string
@@ -49,7 +49,7 @@ func (_m *MockTokenGenerator) GenerateToken(userID uuid.UUID, role string) (stri
 	return r0, r1
 }
 
-// MockTokenGenerator_GenerateToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateToken'
+// MockTokenGenerator_GenerateToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Generate'
 type MockTokenGenerator_GenerateToken_Call struct {
 	*mock.Call
 }
@@ -58,7 +58,7 @@ type MockTokenGenerator_GenerateToken_Call struct {
 //   - userID uuid.UUID
 //   - role string
 func (_e *MockTokenGenerator_Expecter) GenerateToken(userID interface{}, role interface{}) *MockTokenGenerator_GenerateToken_Call {
-	return &MockTokenGenerator_GenerateToken_Call{Call: _e.mock.On("GenerateToken", userID, role)}
+	return &MockTokenGenerator_GenerateToken_Call{Call: _e.mock.On("Generate", userID, role)}
 }
 
 func (_c *MockTokenGenerator_GenerateToken_Call) Run(run func(userID uuid.UUID, role string)) *MockTokenGenerator_GenerateToken_Call {
@@ -79,11 +79,11 @@ func (_c *MockTokenGenerator_GenerateToken_Call) RunAndReturn(run func(uuid.UUID
 }
 
 // ValidateToken provides a mock function with given fields: token
-func (_m *MockTokenGenerator) ValidateToken(token string) (uuid.UUID, string, error) {
+func (_m *MockTokenGenerator) Validate(token string) (uuid.UUID, string, error) {
 	ret := _m.Called(token)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ValidateToken")
+		panic("no return value specified for Validate")
 	}
 
 	var r0 uuid.UUID
@@ -115,7 +115,7 @@ func (_m *MockTokenGenerator) ValidateToken(token string) (uuid.UUID, string, er
 	return r0, r1, r2
 }
 
-// MockTokenGenerator_ValidateToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidateToken'
+// MockTokenGenerator_ValidateToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Validate'
 type MockTokenGenerator_ValidateToken_Call struct {
 	*mock.Call
 }
@@ -123,7 +123,7 @@ type MockTokenGenerator_ValidateToken_Call struct {
 // ValidateToken is a helper method to define mock.On call
 //   - token string
 func (_e *MockTokenGenerator_Expecter) ValidateToken(token interface{}) *MockTokenGenerator_ValidateToken_Call {
-	return &MockTokenGenerator_ValidateToken_Call{Call: _e.mock.On("ValidateToken", token)}
+	return &MockTokenGenerator_ValidateToken_Call{Call: _e.mock.On("Validate", token)}
 }
 
 func (_c *MockTokenGenerator_ValidateToken_Call) Run(run func(token string)) *MockTokenGenerator_ValidateToken_Call {

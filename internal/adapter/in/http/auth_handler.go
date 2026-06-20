@@ -41,6 +41,7 @@ func (h *AuthHandler) DummyLogin(w http.ResponseWriter, r *http.Request) {
 		r.Context(), mapper.MapRequestToDummyLogin(req),
 	)
 	if err != nil {
+		outErr := mapper.HttpError(err)
 		status, msg, internalErr := mapper.HttpError(err)
 		h.log.ErrorContext(r.Context(), "failed to login dummy",
 			slog.Int("status", status),
@@ -67,9 +68,10 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		r.Context(), mapper.MapRequestToRegister(req),
 	)
 	if err != nil {
+		outErr := mapper.HttpError(err)
 		status, msg, internalErr := mapper.HttpError(err)
 		h.log.ErrorContext(r.Context(), "failed to register",
-			slog.Int("status", status),
+			slog.Int("code", status),
 			slog.String("public_msg", msg),
 			slog.Any("cause", internalErr),
 		)

@@ -59,7 +59,7 @@ func (uc *DummyLoginUC) Execute(ctx context.Context, in dto.DummyLoginInput) (dt
 	}
 
 	// Generate the token for the gotten user
-	token, err := uc.jwtGen.GenerateToken(user.ID(), user.Role().String())
+	token, err := uc.jwtGen.Generate(user.ID(), user.Role().String())
 	if err != nil {
 		return dto.DummyLoginOutput{}, ucerrs.Wrap(
 			ucerrs.ErrGenerateToken, err,

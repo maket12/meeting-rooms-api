@@ -95,7 +95,7 @@ func (r *Router) withAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		userID, role, err := r.jwtGen.ValidateToken(parts[1])
+		userID, role, err := r.jwtGen.Validate(parts[1])
 		if err != nil {
 			http.Error(w, fmt.Sprintf("unauthorized: %v", err), http.StatusUnauthorized)
 			return
