@@ -1,11 +1,11 @@
 package main
 
 import (
+	"MeetingRoomsAPI/cmd/app/config"
 	adapterhttp "MeetingRoomsAPI/internal/adapter/in/http"
 	adapterconf "MeetingRoomsAPI/internal/adapter/out/conference"
 	adapterpg "MeetingRoomsAPI/internal/adapter/out/postgres"
 	"MeetingRoomsAPI/internal/app/usecase"
-	"MeetingRoomsAPI/internal/config"
 	infrajwt "MeetingRoomsAPI/internal/infrastructure/jwt"
 	infrapasswd "MeetingRoomsAPI/internal/infrastructure/password"
 	pkgpostgres "MeetingRoomsAPI/pkg/postgres"

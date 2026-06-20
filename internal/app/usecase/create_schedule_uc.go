@@ -38,41 +38,41 @@ func (uc *CreateScheduleUC) Execute(ctx context.Context, in dto.CreateScheduleIn
 	var out dto.CreateScheduleOutput
 
 	err := uc.trManager.Do(ctx, func(ctx context.Context) error {
-		_, err := uc.room.Get(ctx, in.RoomID)
-		if err != nil {
-			if errors.Is(err, pkgerrs.ErrObjectNotFound) {
+		_, getErr := uc.room.Get(ctx, in.RoomID)
+		if getErr != nil {
+			if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {
 				return ucerrs.ErrRoomNotFound
 			}
-			return ucerrs.Wrap(ucerrs.ErrGetRoomDB, err)
+			return ucerrs.Wrap(ucerrs.ErrGetRoomDB, getErr)
 		}
 
 		// Create schedule
-		schedule, err := model.NewSchedule(
+		schedule, createErr := model.NewSchedule(
 			in.RoomID,
 			in.DaysOfWeek,
 			in.StartTime,
 			in.EndTime,
 		)
-		if err != nil {
-			return ucerrs.Wrap(ucerrs.ErrInvalidInput, err)
+		if createErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 		}
 
-		createdSchedule, err := uc.schedule.Create(ctx, schedule)
-		if err != nil {
-			if errors.Is(err, pkgerrs.ErrObjectAlreadyExists) {
+		createdSchedule, createErr := uc.schedule.Create(ctx, schedule)
+		if createErr != nil {
+			if errors.Is(createErr, pkgerrs.ErrObjectAlreadyExists) {
 				return ucerrs.ErrScheduleAlreadyExists
 			}
-			return ucerrs.Wrap(ucerrs.ErrCreateScheduleDB, err)
+			return ucerrs.Wrap(ucerrs.ErrCreateScheduleDB, createErr)
 		}
 
 		// Create slots
-		slots, err := schedule.CreateSlots()
-		if err != nil {
-			return ucerrs.Wrap(ucerrs.ErrInvalidInput, err)
+		slots, createErr := schedule.CreateSlots()
+		if createErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 		}
 
-		if err := uc.slot.CreateBatch(ctx, slots); err != nil {
-			return ucerrs.Wrap(ucerrs.ErrCreateSlotsDB, err)
+		if createErr = uc.slot.CreateBatch(ctx, slots); createErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrCreateSlotsDB, createErr)
 		}
 
 		out = mapper.MapDomainToCreateScheduleDTO(createdSchedule)

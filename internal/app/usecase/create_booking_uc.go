@@ -39,12 +39,12 @@ func (uc *CreateBookingUC) Execute(ctx context.Context, in dto.CreateBookingInpu
 	var out dto.CreateBookingOutput
 
 	err := uc.trManager.Do(ctx, func(ctx context.Context) error {
-		slot, err := uc.slot.Get(ctx, in.SlotID)
-		if err != nil {
-			if errors.Is(err, pkgerrs.ErrObjectNotFound) {
+		slot, getErr := uc.slot.Get(ctx, in.SlotID)
+		if getErr != nil {
+			if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {
 				return ucerrs.ErrSlotNotFound
 			}
-			return ucerrs.Wrap(ucerrs.ErrGetSlotDB, err)
+			return ucerrs.Wrap(ucerrs.ErrGetSlotDB, getErr)
 		}
 
 		if slot.Start().Before(time.Now().UTC()) {
@@ -53,25 +53,25 @@ func (uc *CreateBookingUC) Execute(ctx context.Context, in dto.CreateBookingInpu
 
 		var conferenceLink *string
 		if in.CreateConferenceLink {
-			link, err := uc.conference.CreateMeeting(ctx)
-			if err != nil {
-				return ucerrs.Wrap(ucerrs.ErrCreateMeeting, err)
+			link, createErr := uc.conference.CreateMeeting(ctx)
+			if createErr != nil {
+				return ucerrs.Wrap(ucerrs.ErrCreateMeeting, createErr)
 			}
 			conferenceLink = &link
 		}
 
-		booking, err := model.NewBooking(
+		booking, createErr := model.NewBooking(
 			slot.ID(),
 			in.UserID,
 			conferenceLink,
 		)
-		if err != nil {
-			return ucerrs.Wrap(ucerrs.ErrInvalidInput, err)
+		if createErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 		}
 
-		createdBooking, err := uc.booking.Create(ctx, booking)
-		if err != nil {
-			return ucerrs.Wrap(ucerrs.ErrCreateBookingDB, err)
+		createdBooking, createErr := uc.booking.Create(ctx, booking)
+		if createErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrCreateBookingDB, createErr)
 		}
 
 		out = mapper.MapDomainToCreateBookingDTO(createdBooking)

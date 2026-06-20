@@ -92,5 +92,6 @@ func (b *Booking) Cancel(requestorID uuid.UUID) error {
 	}
 
 	b.status = BookingCancelled
+
 	return nil
 }

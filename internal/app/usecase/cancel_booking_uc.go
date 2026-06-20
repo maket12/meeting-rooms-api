@@ -29,7 +29,7 @@ func (uc *CancelBookingUC) Execute(ctx context.Context, in dto.CancelBookingInpu
 		)
 	}
 
-	if err := booking.Cancel(in.RequestorID); err != nil {
+	if err = booking.Cancel(in.RequestorID); err != nil {
 		return dto.CancelBookingOutput{}, ucerrs.ErrCannotCancelBooking
 	}
 
