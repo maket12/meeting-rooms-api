@@ -92,8 +92,9 @@ func MapScheduleToResponse(schedule appdto.Schedule) httpdto.ScheduleResponse {
 }
 
 func MapRequestToCreateSchedule(request httpdto.CreateScheduleRequest) appdto.CreateScheduleInput {
+	roomID, _ := uuid.Parse(request.RoomID)
 	return appdto.CreateScheduleInput{
-		RoomID:     uuid.MustParse(request.RoomID),
+		RoomID:     roomID,
 		DaysOfWeek: request.DaysOfWeek,
 		StartTime:  request.StartTime,
 		EndTime:    request.EndTime,
@@ -148,8 +149,9 @@ func MapBookingToResponse(booking appdto.Booking) httpdto.BookingResponse {
 }
 
 func MapRequestToCreateBooking(request httpdto.CreateBookingRequest, userID uuid.UUID) appdto.CreateBookingInput {
+	slotID, _ := uuid.Parse(request.SlotID)
 	return appdto.CreateBookingInput{
-		SlotID:               uuid.MustParse(request.SlotID),
+		SlotID:               slotID,
 		UserID:               userID,
 		CreateConferenceLink: request.CreateConferenceLink,
 	}

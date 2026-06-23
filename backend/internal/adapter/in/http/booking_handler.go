@@ -40,8 +40,7 @@ func NewBookingHandler(
 
 func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(UserIDKey).(uuid.UUID)
-
-	if !ok {
+	if !ok { // Validation of user id (e.g. authorization)
 		h.handleError(w, r, pkgerrs.ErrInvalidUserID, "unauthorized: user id not found in context")
 		return
 	}
@@ -50,6 +49,11 @@ func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
+	}
+
+	// Validation of slot id
+	if _, err := uuid.Parse(req.SlotID); err != nil {
+		h.handleError(w, r, pkgerrs.ErrInvalidIdentifier, "failed to parse uuid")
 	}
 
 	out, err := h.createBookingUC.Execute(
@@ -62,13 +66,22 @@ func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.log.InfoContext(r.Context(), "created booking", slog.String("id", out.Booking.ID.String()))
+
 	h.respond(w, http.StatusCreated, mapper.MapBookingToResponse(out.Booking))
 }
 
 func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
-	userID, _ := r.Context().Value(UserIDKey).(uuid.UUID)
+	userID, ok := r.Context().Value(UserIDKey).(uuid.UUID)
+	if !ok { // Validation of user id (e.g. authorization)
+		h.handleError(w, r, pkgerrs.ErrInvalidUserID, "unauthorized: user id not found in context")
+		return
+	}
+
 	bookingIDStr := r.PathValue("bookingId")
-	bookingID, _ := uuid.Parse(bookingIDStr)
+	bookingID, err := uuid.Parse(bookingIDStr) // Validation of booking id
+	if err != nil {
+		h.handleError(w, r, pkgerrs.ErrInvalidIdentifier, "failed to parse uuid")
+	}
 
 	out, err := h.cancelBookingUC.Execute(r.Context(), ucdto.CancelBookingInput{
 		BookingID:   bookingID,
@@ -80,11 +93,16 @@ func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.log.InfoContext(r.Context(), "cancelled booking", slog.String("id", bookingIDStr))
+
 	h.respond(w, http.StatusOK, mapper.MapBookingToResponse(out.Booking))
 }
 
 func (h *BookingHandler) ListMyBookings(w http.ResponseWriter, r *http.Request) {
-	userID, _ := r.Context().Value(UserIDKey).(uuid.UUID)
+	userID, ok := r.Context().Value(UserIDKey).(uuid.UUID)
+	if !ok { // Validation of user id (e.g. authorization)
+		h.handleError(w, r, pkgerrs.ErrInvalidUserID, "unauthorized: user id not found in context")
+		return
+	}
 
 	out, err := h.listMyBookingsUC.Execute(r.Context(), userID)
 	if err != nil {
