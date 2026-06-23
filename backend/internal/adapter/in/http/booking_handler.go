@@ -54,6 +54,7 @@ func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 	// Validation of slot id
 	if _, err := uuid.Parse(req.SlotID); err != nil {
 		h.handleError(w, r, pkgerrs.ErrInvalidIdentifier, "failed to parse uuid")
+		return
 	}
 
 	out, err := h.createBookingUC.Execute(
@@ -81,6 +82,7 @@ func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
 	bookingID, err := uuid.Parse(bookingIDStr) // Validation of booking id
 	if err != nil {
 		h.handleError(w, r, pkgerrs.ErrInvalidIdentifier, "failed to parse uuid")
+		return
 	}
 
 	out, err := h.cancelBookingUC.Execute(r.Context(), ucdto.CancelBookingInput{

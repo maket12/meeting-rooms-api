@@ -2,7 +2,7 @@ package http
 
 import (
 	httpdto "backend/internal/adapter/in/http/dto"
-	mapper2 "backend/internal/adapter/in/http/mapper"
+	"backend/internal/adapter/in/http/mapper"
 	"backend/internal/app/usecase"
 	"encoding/json"
 	"log/slog"
@@ -38,7 +38,7 @@ func (h *SlotHandler) ListSlots(w http.ResponseWriter, r *http.Request) {
 		Date:   date,
 	}
 
-	mappedReq, err := mapper2.MapRequestToListSlots(req)
+	mappedReq, err := mapper.MapRequestToListSlots(req)
 	if err != nil {
 		http.Error(w, "invalid input", http.StatusBadRequest)
 		return
@@ -48,7 +48,7 @@ func (h *SlotHandler) ListSlots(w http.ResponseWriter, r *http.Request) {
 		r.Context(), mappedReq,
 	)
 	if err != nil {
-		status, msg, internalErr := mapper2.HttpError(err)
+		status, msg, internalErr := mapper.HttpError(err)
 		h.log.ErrorContext(r.Context(), "failed to get a list of slots",
 			slog.Int("status", status),
 			slog.String("public_msg", msg),
@@ -58,7 +58,9 @@ func (h *SlotHandler) ListSlots(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.respond(w, http.StatusOK, mapper.MapListSlotsToResponse(out))
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(mapper2.MapListSlotsToResponse(out))
+	_ = json.NewEncoder(w).Encode(mapper.MapListSlotsToResponse(out))
 }

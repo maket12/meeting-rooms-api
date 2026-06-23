@@ -22,7 +22,7 @@ type CreateRoomRequest struct {
 }
 
 type CreateScheduleRequest struct {
-	RoomID     string `json:"roomId"`
+	RoomID     string `param:"roomId"`
 	DaysOfWeek []int  `json:"daysOfWeek"`
 	StartTime  string `json:"startTime"`
 	EndTime    string `json:"endTime"`
