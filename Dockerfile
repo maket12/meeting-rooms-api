@@ -4,10 +4,10 @@ RUN apk add --no-cache git
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY backend/go.mod go.sum ./
 RUN go mod download
 
-COPY pkg/ ./pkg/
+COPY backend/pkg/ ./pkg/
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o meeting-rooms-api ./cmd/app/main.go
