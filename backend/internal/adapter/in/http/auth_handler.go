@@ -2,8 +2,9 @@ package http
 
 import (
 	httpdto "backend/internal/adapter/in/http/dto"
-	mapper2 "backend/internal/adapter/in/http/mapper"
-	usecase2 "backend/internal/app/usecase"
+	"backend/internal/adapter/in/http/mapper"
+	"backend/internal/app/usecase"
+	pkgerrs "backend/pkg/errs"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -11,16 +12,16 @@ import (
 
 type AuthHandler struct {
 	log          *slog.Logger
-	dummyLoginUC *usecase2.DummyLoginUC
-	registerUC   *usecase2.RegisterUC
-	loginUC      *usecase2.LoginUC
+	dummyLoginUC *usecase.DummyLoginUC
+	registerUC   *usecase.RegisterUC
+	loginUC      *usecase.LoginUC
 }
 
 func NewAuthHandler(
 	log *slog.Logger,
-	dummyLoginUC *usecase2.DummyLoginUC,
-	registerUC *usecase2.RegisterUC,
-	loginUC *usecase2.LoginUC,
+	dummyLoginUC *usecase.DummyLoginUC,
+	registerUC *usecase.RegisterUC,
+	loginUC *usecase.LoginUC,
 ) *AuthHandler {
 	return &AuthHandler{
 		log:          log,
@@ -33,49 +34,33 @@ func NewAuthHandler(
 func (h *AuthHandler) DummyLogin(w http.ResponseWriter, r *http.Request) {
 	var req httpdto.DummyLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		h.handleError(w, r, pkgerrs.ErrInvalidJSON, "invalid json")
 		return
 	}
 
 	out, err := h.dummyLoginUC.Execute(
-		r.Context(), mapper2.MapRequestToDummyLogin(req),
+		r.Context(), mapper.MapRequestToDummyLogin(req),
 	)
 	if err != nil {
-		outErr := mapper2.HttpError(err)
-		status, msg, internalErr := mapper2.HttpError(err)
-		h.log.ErrorContext(r.Context(), "failed to login dummy",
-			slog.Int("status", status),
-			slog.String("public_msg", msg),
-			slog.Any("cause", internalErr),
-		)
-		http.Error(w, msg, status)
+		h.handleError(w, r, err, "failed to login dummy")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(mapper2.MapDummyLoginToResponse(out))
+	h.respond(w, http.StatusOK, mapper.MapDummyLoginToResponse(out))
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req httpdto.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		h.handleError(w, r, pkgerrs.ErrInvalidJSON, "invalid json")
 		return
 	}
 
 	out, err := h.registerUC.Execute(
-		r.Context(), mapper2.MapRequestToRegister(req),
+		r.Context(), mapper.MapRequestToRegister(req),
 	)
 	if err != nil {
-		outErr := mapper2.HttpError(err)
-		status, msg, internalErr := mapper2.HttpError(err)
-		h.log.ErrorContext(r.Context(), "failed to register",
-			slog.Int("code", status),
-			slog.String("public_msg", msg),
-			slog.Any("cause", internalErr),
-		)
-		http.Error(w, msg, status)
+		h.handleError(w, r, err, "failed to register")
 		return
 	}
 
@@ -83,33 +68,39 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		slog.String("id", out.User.ID.String()),
 	)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(mapper2.MapRegisterToResponse(out))
+	h.respond(w, http.StatusCreated, mapper.MapRegisterToResponse(out))
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req httpdto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		h.handleError(w, r, pkgerrs.ErrInvalidJSON, "invalid json")
 		return
 	}
 
 	out, err := h.loginUC.Execute(
-		r.Context(), mapper2.MapRequestToLogin(req),
+		r.Context(), mapper.MapRequestToLogin(req),
 	)
 	if err != nil {
-		status, msg, internalErr := mapper2.HttpError(err)
-		h.log.ErrorContext(r.Context(), "failed to register",
-			slog.Int("status", status),
-			slog.String("public_msg", msg),
-			slog.Any("cause", internalErr),
-		)
-		http.Error(w, msg, status)
+		h.handleError(w, r, err, "failed to register")
 		return
 	}
 
+	h.respond(w, http.StatusOK, mapper.MapLoginToResponse(out))
+}
+
+func (h *AuthHandler) handleError(w http.ResponseWriter, r *http.Request, err error, logMsg string) {
+	outErr := mapper.HttpError(err)
+	h.log.ErrorContext(r.Context(), logMsg,
+		slog.Int("status", outErr.Code),
+		slog.String("public_msg", outErr.Message),
+		slog.Any("cause", outErr.Reason),
+	)
+	http.Error(w, outErr.Message, outErr.Code)
+}
+
+func (h *AuthHandler) respond(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(mapper2.MapLoginToResponse(out))
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(data)
 }

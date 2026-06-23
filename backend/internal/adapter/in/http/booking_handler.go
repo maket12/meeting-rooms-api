@@ -47,7 +47,7 @@ func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 
 	var req httpdto.CreateBookingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		h.handleError(w, r, pkgerrs.ErrInvalidJSON, "invalid json")
 		return
 	}
 
