@@ -29,8 +29,8 @@ type CreateScheduleRequest struct {
 }
 
 type ListSlotsRequest struct {
-	RoomID string `json:"roomId"`
-	Date   string `json:"date"`
+	RoomID string `param:"roomId"`
+	Date   string `query:"date"`
 }
 
 type CreateBookingRequest struct {
@@ -39,5 +39,5 @@ type CreateBookingRequest struct {
 }
 
 type CancelBookingRequest struct {
-	BookingID string `json:"bookingId"`
+	BookingID string `param:"bookingId"`
 }

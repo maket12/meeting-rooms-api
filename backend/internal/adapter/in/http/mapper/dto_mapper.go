@@ -107,16 +107,13 @@ func MapCreateScheduleToResponse(output appdto.CreateScheduleOutput) httpdto.Cre
 	}
 }
 
-func MapRequestToListSlots(request httpdto.ListSlotsRequest) (appdto.ListSlotsInput, error) {
-	date, err := time.Parse("2006-01-02", request.Date)
-	if err != nil {
-		return appdto.ListSlotsInput{}, err
-	}
-
+func MapRequestToListSlots(request httpdto.ListSlotsRequest) appdto.ListSlotsInput {
+	roomID, _ := uuid.Parse(request.RoomID)
+	date, _ := time.Parse(time.RFC3339, request.Date)
 	return appdto.ListSlotsInput{
-		RoomID: uuid.MustParse(request.RoomID),
+		RoomID: roomID,
 		Date:   date,
-	}, nil
+	}
 }
 
 func MapSlotToResponse(slot appdto.Slot) httpdto.SlotResponse {
