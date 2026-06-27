@@ -5,7 +5,6 @@ import (
 	"backend/internal/adapter/in/http/mapper"
 	"backend/internal/app/usecase"
 	pkgerrs "backend/pkg/errs"
-	"encoding/json"
 	"log/slog"
 	"net/http"
 	"time"
@@ -14,7 +13,7 @@ import (
 )
 
 type SlotHandler struct {
-	log         *slog.Logger
+	BaseHandler
 	listSlotsUC *usecase.ListSlotsUC
 }
 
@@ -23,7 +22,7 @@ func NewSlotHandler(
 	listSlotsUC *usecase.ListSlotsUC,
 ) *SlotHandler {
 	return &SlotHandler{
-		log:         log,
+		BaseHandler: NewBaseHandler(log),
 		listSlotsUC: listSlotsUC,
 	}
 }
@@ -57,20 +56,4 @@ func (h *SlotHandler) ListSlots(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.respond(w, http.StatusOK, mapper.MapListSlotsToResponse(out))
-}
-
-func (h *SlotHandler) handleError(w http.ResponseWriter, r *http.Request, err error, logMsg string) {
-	outErr := mapper.HttpError(err)
-	h.log.ErrorContext(r.Context(), logMsg,
-		slog.Int("status", outErr.Code),
-		slog.String("public_msg", outErr.Message),
-		slog.Any("cause", outErr.Reason),
-	)
-	http.Error(w, outErr.Message, outErr.Code)
-}
-
-func (h *SlotHandler) respond(w http.ResponseWriter, status int, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(data)
 }

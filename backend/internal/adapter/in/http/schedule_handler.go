@@ -13,7 +13,7 @@ import (
 )
 
 type ScheduleHandler struct {
-	log              *slog.Logger
+	BaseHandler
 	createScheduleUC *usecase.CreateScheduleUC
 }
 
@@ -22,7 +22,7 @@ func NewScheduleHandler(
 	createScheduleUC *usecase.CreateScheduleUC,
 ) *ScheduleHandler {
 	return &ScheduleHandler{
-		log:              log,
+		BaseHandler:      NewBaseHandler(log),
 		createScheduleUC: createScheduleUC,
 	}
 }
@@ -56,20 +56,4 @@ func (h *ScheduleHandler) CreateSchedule(w http.ResponseWriter, r *http.Request)
 	)
 
 	h.respond(w, http.StatusCreated, mapper.MapCreateScheduleToResponse(out))
-}
-
-func (h *ScheduleHandler) handleError(w http.ResponseWriter, r *http.Request, err error, logMsg string) {
-	outErr := mapper.HttpError(err)
-	h.log.ErrorContext(r.Context(), logMsg,
-		slog.Int("status", outErr.Code),
-		slog.String("public_msg", outErr.Message),
-		slog.Any("cause", outErr.Reason),
-	)
-	http.Error(w, outErr.Message, outErr.Code)
-}
-
-func (h *ScheduleHandler) respond(w http.ResponseWriter, status int, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(data)
 }

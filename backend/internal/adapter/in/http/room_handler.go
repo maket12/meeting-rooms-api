@@ -11,7 +11,7 @@ import (
 )
 
 type RoomHandler struct {
-	log          *slog.Logger
+	BaseHandler
 	createRoomUC *usecase.CreateRoomUC
 	listRoomsUC  *usecase.ListRoomsUC
 }
@@ -22,7 +22,7 @@ func NewRoomHandler(
 	listRoomsUC *usecase.ListRoomsUC,
 ) *RoomHandler {
 	return &RoomHandler{
-		log:          log,
+		BaseHandler:  NewBaseHandler(log),
 		createRoomUC: createRoomUC,
 		listRoomsUC:  listRoomsUC,
 	}
@@ -57,20 +57,4 @@ func (h *RoomHandler) ListRooms(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.respond(w, http.StatusOK, mapper.MapListRoomsToResponse(out))
-}
-
-func (h *RoomHandler) handleError(w http.ResponseWriter, r *http.Request, err error, logMsg string) {
-	outErr := mapper.HttpError(err)
-	h.log.ErrorContext(r.Context(), logMsg,
-		slog.Int("status", outErr.Code),
-		slog.String("public_msg", outErr.Message),
-		slog.Any("cause", outErr.Reason),
-	)
-	http.Error(w, outErr.Message, outErr.Code)
-}
-
-func (h *RoomHandler) respond(w http.ResponseWriter, status int, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(data)
 }

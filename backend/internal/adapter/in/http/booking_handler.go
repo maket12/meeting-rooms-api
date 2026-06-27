@@ -15,7 +15,7 @@ import (
 )
 
 type BookingHandler struct {
-	log              *slog.Logger
+	BaseHandler
 	createBookingUC  *usecase.CreateBookingUC
 	cancelBookingUC  *usecase.CancelBookingUC
 	listMyBookingsUC *usecase.ListMyBookingsUC
@@ -30,7 +30,7 @@ func NewBookingHandler(
 	listBookingsUC *usecase.ListBookingsUC,
 ) *BookingHandler {
 	return &BookingHandler{
-		log:              log,
+		BaseHandler:      NewBaseHandler(log),
 		createBookingUC:  createBookingUC,
 		cancelBookingUC:  cancelBookingUC,
 		listMyBookingsUC: listMyBookingsUC,
@@ -129,20 +129,4 @@ func (h *BookingHandler) ListAllBookings(w http.ResponseWriter, r *http.Request)
 	}
 
 	h.respond(w, http.StatusOK, mapper.MapListToResponse(out))
-}
-
-func (h *BookingHandler) handleError(w http.ResponseWriter, r *http.Request, err error, logMsg string) {
-	outErr := mapper.HttpError(err)
-	h.log.ErrorContext(r.Context(), logMsg,
-		slog.Int("status", outErr.Code),
-		slog.String("public_msg", outErr.Message),
-		slog.Any("cause", outErr.Reason),
-	)
-	http.Error(w, outErr.Message, outErr.Code)
-}
-
-func (h *BookingHandler) respond(w http.ResponseWriter, status int, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(data)
 }

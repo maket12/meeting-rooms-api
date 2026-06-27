@@ -11,7 +11,7 @@ import (
 )
 
 type AuthHandler struct {
-	log          *slog.Logger
+	BaseHandler
 	dummyLoginUC *usecase.DummyLoginUC
 	registerUC   *usecase.RegisterUC
 	loginUC      *usecase.LoginUC
@@ -24,7 +24,7 @@ func NewAuthHandler(
 	loginUC *usecase.LoginUC,
 ) *AuthHandler {
 	return &AuthHandler{
-		log:          log,
+		BaseHandler:  NewBaseHandler(log),
 		dummyLoginUC: dummyLoginUC,
 		registerUC:   registerUC,
 		loginUC:      loginUC,
@@ -87,20 +87,4 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.respond(w, http.StatusOK, mapper.MapLoginToResponse(out))
-}
-
-func (h *AuthHandler) handleError(w http.ResponseWriter, r *http.Request, err error, logMsg string) {
-	outErr := mapper.HttpError(err)
-	h.log.ErrorContext(r.Context(), logMsg,
-		slog.Int("status", outErr.Code),
-		slog.String("public_msg", outErr.Message),
-		slog.Any("cause", outErr.Reason),
-	)
-	http.Error(w, outErr.Message, outErr.Code)
-}
-
-func (h *AuthHandler) respond(w http.ResponseWriter, status int, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(data)
 }
