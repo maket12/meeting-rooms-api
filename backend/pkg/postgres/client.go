@@ -42,10 +42,19 @@ func NewConfig(
 	}
 }
 
+// DSN Returns dsn for postgres clients such as https://github.com/jackc/pgx
 func (pc *Config) DSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		pc.Host, pc.Port, pc.User, pc.Password, pc.Name, pc.SSLMode,
+	)
+}
+
+// MigrationDSN Returns dsn for migration tools such as https://github.com/golang-migrate/migrate
+func (pc *Config) MigrationDSN() string {
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		pc.User, pc.Password, pc.Host, pc.Port, pc.Name, pc.SSLMode,
 	)
 }
 
@@ -73,7 +82,7 @@ func NewClient(ctx context.Context, cfg *Config) (*Client, error) {
 		return nil, fmt.Errorf("failed to create pool: %w", err)
 	}
 
-	if err := pool.Ping(ctx); err != nil {
+	if err = pool.Ping(ctx); err != nil {
 		pool.Close()
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
