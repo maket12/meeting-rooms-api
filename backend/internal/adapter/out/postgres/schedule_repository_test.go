@@ -18,9 +18,7 @@ type ScheduleRepoSuite struct {
 	testSchedule *model.Schedule
 }
 
-func TestScheduleRepoSuite(t *testing.T) {
-	suite.Run(t, new(ScheduleRepoSuite))
-}
+func TestScheduleRepoSuite(t *testing.T) { suite.Run(t, new(ScheduleRepoSuite)) }
 
 func (s *ScheduleRepoSuite) SetupSuite() {
 	s.SetupBase(3)

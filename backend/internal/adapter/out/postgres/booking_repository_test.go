@@ -23,9 +23,7 @@ type BookingRepoSuite struct {
 	testSlotID  uuid.UUID
 }
 
-func TestBookingRepoSuite(t *testing.T) {
-	suite.Run(t, new(BookingRepoSuite))
-}
+func TestBookingRepoSuite(t *testing.T) { suite.Run(t, new(BookingRepoSuite)) }
 
 func (s *BookingRepoSuite) SetupSuite() {
 	s.SetupBase(5)
