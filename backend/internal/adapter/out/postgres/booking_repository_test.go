@@ -1,7 +1,7 @@
 package postgres_test
 
 import (
-	"backend/internal/adapter/out/postgres"
+	adapterpostgres "backend/internal/adapter/out/postgres"
 	"backend/internal/domain/model"
 	pkgerrs "backend/pkg/errs"
 	"backend/pkg/utils"
@@ -16,7 +16,7 @@ import (
 
 type BookingRepoSuite struct {
 	BaseRepoSuite
-	repo        *postgres.BookingRepository
+	repo        *adapterpostgres.BookingRepository
 	testBooking *model.Booking
 	testUserID  uuid.UUID
 	testRoomID  uuid.UUID
@@ -29,7 +29,7 @@ func TestBookingRepoSuite(t *testing.T) {
 
 func (s *BookingRepoSuite) SetupSuite() {
 	s.SetupBase(5)
-	s.repo = postgres.NewBookingRepository(
+	s.repo = adapterpostgres.NewBookingRepository(
 		s.dbClient,
 		trmpgx.DefaultCtxGetter,
 	)
@@ -45,9 +45,9 @@ func (s *BookingRepoSuite) SetupTest() {
 }
 
 func (s *BookingRepoSuite) seedData() {
-	userRepo := postgres.NewUserRepository(s.dbClient, trmpgx.DefaultCtxGetter)
-	roomRepo := postgres.NewRoomRepository(s.dbClient, trmpgx.DefaultCtxGetter)
-	slotRepo := postgres.NewSlotRepository(s.dbClient, trmpgx.DefaultCtxGetter)
+	userRepo := adapterpostgres.NewUserRepository(s.dbClient, trmpgx.DefaultCtxGetter)
+	roomRepo := adapterpostgres.NewRoomRepository(s.dbClient, trmpgx.DefaultCtxGetter)
+	slotRepo := adapterpostgres.NewSlotRepository(s.dbClient, trmpgx.DefaultCtxGetter)
 
 	testUser, _ := model.NewUser("email", "hash", model.RoleUser)
 	testRoom, _ := model.NewRoom("№147", nil, nil)
