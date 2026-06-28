@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"backend/internal/adapter/out/postgres/mapper"
-	sqlc2 "backend/internal/adapter/out/postgres/sqlc"
+	"backend/internal/adapter/out/postgres/sqlc"
 	"backend/internal/domain/model"
 	pkgerrs "backend/pkg/errs"
 	pkgpostgres "backend/pkg/postgres"
@@ -18,7 +18,7 @@ import (
 )
 
 type BookingRepository struct {
-	q      *sqlc2.Queries
+	q      *sqlc.Queries
 	pool   *pgxpool.Pool
 	getter *trmpgx.CtxGetter
 }
@@ -28,7 +28,7 @@ func NewBookingRepository(
 	getter *trmpgx.CtxGetter,
 ) *BookingRepository {
 	return &BookingRepository{
-		q:      sqlc2.New(),
+		q:      sqlc.New(),
 		pool:   pgClient.Pool,
 		getter: getter,
 	}
@@ -78,7 +78,7 @@ func (r *BookingRepository) Get(ctx context.Context, id uuid.UUID) (*model.Booki
 
 func (r *BookingRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status model.BookingStatus) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
-	return r.q.UpdateBookingStatus(ctx, db, sqlc2.UpdateBookingStatusParams{
+	return r.q.UpdateBookingStatus(ctx, db, sqlc.UpdateBookingStatusParams{
 		ID: pgtype.UUID{
 			Bytes: id,
 			Valid: true,
@@ -111,7 +111,7 @@ func (r *BookingRepository) ListAll(ctx context.Context, limit, offset int32) ([
 	raw, err := r.q.ListAllBookings(
 		ctx,
 		db,
-		sqlc2.ListAllBookingsParams{
+		sqlc.ListAllBookingsParams{
 			Limit:  limit,
 			Offset: offset,
 		},

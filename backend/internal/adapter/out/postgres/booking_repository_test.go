@@ -2,153 +2,71 @@ package postgres_test
 
 import (
 	"backend/internal/adapter/out/postgres"
-	model2 "backend/internal/domain/model"
-	"backend/migrations"
+	"backend/internal/domain/model"
 	pkgerrs "backend/pkg/errs"
-	pkgpostgres "backend/pkg/postgres"
 	"backend/pkg/utils"
-	"context"
-	"errors"
 	"testing"
 	"time"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 )
 
 type BookingRepoSuite struct {
-	suite.Suite
-	dbClient    *pkgpostgres.Client
+	BaseRepoSuite
 	repo        *postgres.BookingRepository
-	ctx         context.Context
-	migrate     *migrate.Migrate
-	testBooking *model2.Booking
+	testBooking *model.Booking
 	testUserID  uuid.UUID
 	testRoomID  uuid.UUID
 	testSlotID  uuid.UUID
 }
 
 func TestBookingRepoSuite(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration tests in short mode")
-	}
 	suite.Run(t, new(BookingRepoSuite))
 }
 
-func (s *BookingRepoSuite) setupDatabase() {
-	// Version of the lowest migration to apply
-	const targetVersion = 5
-
-	dbConfig := pkgpostgres.NewConfig(
-		"localhost", 5433, "test-user",
-		"test-pass", "test-db", "disable",
-		5, 5,
-		10*time.Second, 10*time.Second,
-	)
-	dsn := "postgres://test-user:test-pass@localhost:5433/test-db?sslmode=disable"
-
-	dbClient, err := pkgpostgres.NewClient(context.Background(), dbConfig)
-	s.Require().NoError(err)
-	s.dbClient = dbClient
-
-	sourceDriver, err := iofs.New(migrations.FS, ".")
-	s.Require().NoError(err, "failed to create iofs driver")
-
-	m, err := migrate.NewWithSourceInstance(
-		"iofs",
-		sourceDriver,
-		dsn,
-	)
-	s.Require().NoError(err, "failed to create migration instance")
-
-	s.migrate = m
-
-	err = m.Migrate(targetVersion)
-
-	// If migration is correct - setup has done
-	if err == nil || errors.Is(err, migrate.ErrNoChange) {
-		return
-	}
-
-	// Except dirty db as a normal scenario
-	var dirtyErr migrate.ErrDirty
-	if !errors.As(err, &dirtyErr) {
-		s.FailNowf("failed to migrate up", "unexpected error: %v", err)
-	}
-
-	// ================ Restore dirty database ================
-	_ = m.Force(dirtyErr.Version)
-
-	err = m.Down()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		s.Require().NoError(err, "failed to migrate down during recovery")
-	}
-
-	err = m.Migrate(targetVersion)
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		s.Require().NoError(err, "failed to migrate up after recovery")
-	}
-}
-
 func (s *BookingRepoSuite) SetupSuite() {
-	s.ctx = context.Background()
-	s.setupDatabase()
+	s.SetupBase(5)
 	s.repo = postgres.NewBookingRepository(
 		s.dbClient,
 		trmpgx.DefaultCtxGetter,
 	)
-
-	userRepo := postgres.NewUserRepository(
-		s.dbClient,
-		trmpgx.DefaultCtxGetter,
-	)
-	testUser, _ := model2.NewUser(
-		"email",
-		"hash",
-		model2.RoleUser,
-	)
-	_, _ = userRepo.Create(s.ctx, testUser)
-	s.testUserID = testUser.ID()
-
-	roomRepo := postgres.NewRoomRepository(
-		s.dbClient,
-		trmpgx.DefaultCtxGetter,
-	)
-	testRoom, _ := model2.NewRoom("№147", nil, nil)
-	_, _ = roomRepo.Create(s.ctx, testRoom)
-	s.testRoomID = testRoom.ID()
-
-	slotRepo := postgres.NewSlotRepository(
-		s.dbClient,
-		trmpgx.DefaultCtxGetter,
-	)
-	testSlot, _ := model2.NewSlot(s.testRoomID, time.Now().Add(time.Hour).UTC())
-	_ = slotRepo.CreateBatch(s.ctx, []*model2.Slot{testSlot})
-	s.testSlotID = testSlot.ID()
-
-	s.testBooking, _ = model2.NewBooking(
-		s.testSlotID,
-		s.testUserID,
-		utils.VPtr("https://telemost.yandex.ru/test"),
-	)
-}
-
-func (s *BookingRepoSuite) TearDownSuite() {
-	if s.migrate != nil {
-		if err := s.migrate.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-			s.Require().NoError(err, "failed to migrate down")
-		}
-	}
-	s.dbClient.Close()
 }
 
 func (s *BookingRepoSuite) SetupTest() {
-	_, err := s.dbClient.Pool.Exec(s.ctx, "TRUNCATE TABLE bookings CASCADE")
+	_, err := s.dbClient.Pool.Exec(s.ctx,
+		"TRUNCATE TABLE bookings, slots, rooms, users RESTART IDENTITY CASCADE",
+	)
 	s.Require().NoError(err)
+
+	s.seedData()
+}
+
+func (s *BookingRepoSuite) seedData() {
+	userRepo := postgres.NewUserRepository(s.dbClient, trmpgx.DefaultCtxGetter)
+	roomRepo := postgres.NewRoomRepository(s.dbClient, trmpgx.DefaultCtxGetter)
+	slotRepo := postgres.NewSlotRepository(s.dbClient, trmpgx.DefaultCtxGetter)
+
+	testUser, _ := model.NewUser("email", "hash", model.RoleUser)
+	testRoom, _ := model.NewRoom("№147", nil, nil)
+	testSlot, _ := model.NewSlot(testRoom.ID(), time.Now().Add(time.Hour).UTC())
+
+	_, err := userRepo.Create(s.ctx, testUser)
+	s.Require().NoError(err, "failed to seed user")
+
+	_, err = roomRepo.Create(s.ctx, testRoom)
+	s.Require().NoError(err, "failed to seed room")
+
+	_ = slotRepo.CreateBatch(s.ctx, []*model.Slot{testSlot})
+	s.Require().NoError(err, "failed to seed slots")
+
+	s.testUserID = testUser.ID()
+	s.testRoomID = testRoom.ID()
+	s.testSlotID = testSlot.ID()
+
+	s.testBooking, _ = model.NewBooking(s.testSlotID, s.testUserID, utils.VPtr("https://telemost.yandex.ru/test"))
 }
 
 func (s *BookingRepoSuite) TestCreateGet() {
@@ -179,12 +97,12 @@ func (s *BookingRepoSuite) TestUpdateStatus() {
 	_, _ = s.repo.Create(s.ctx, s.testBooking)
 
 	// Cancel it
-	err := s.repo.UpdateStatus(s.ctx, s.testBooking.ID(), model2.BookingCancelled)
+	err := s.repo.UpdateStatus(s.ctx, s.testBooking.ID(), model.BookingCancelled)
 	s.Require().NoError(err)
 
 	// Check the result
 	booking, _ := s.repo.Get(s.ctx, s.testBooking.ID())
-	s.Require().Equal(model2.BookingCancelled, booking.Status())
+	s.Require().Equal(model.BookingCancelled, booking.Status())
 }
 
 func (s *BookingRepoSuite) TestListByUserID() {
