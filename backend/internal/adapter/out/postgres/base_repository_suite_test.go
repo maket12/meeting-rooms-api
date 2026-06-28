@@ -8,7 +8,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -49,7 +48,6 @@ type BaseRepoSuite struct {
 	pgContainer *testhelpers.PostgresContainer
 	dbClient    *pkgpostgres.Client
 	ctx         context.Context
-	migrate     *migrate.Migrate
 }
 
 func (s *BaseRepoSuite) SetupBase(version uint) {
