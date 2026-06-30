@@ -20,7 +20,12 @@ func (h *BaseHandler) handleError(w http.ResponseWriter, r *http.Request, err er
 		slog.String("public_msg", outErr.Message),
 		slog.Any("cause", outErr.Reason),
 	)
-	http.Error(w, outErr.Message, outErr.Code)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(outErr.Code)
+
+	response := map[string]string{"error": outErr.Message}
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func (h *BaseHandler) respond(w http.ResponseWriter, status int, data any) {

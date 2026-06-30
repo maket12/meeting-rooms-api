@@ -36,7 +36,7 @@ func (uc *RegisterUC) Execute(ctx context.Context, in dto.RegisterInput) (dto.Re
 	}
 
 	// Creating rich-models with validation
-	user, err := model.NewUser(in.Email, hashedPassword, model.UserRole(in.Role))
+	user, err := model.NewUser(in.Email, hashedPassword, in.Role)
 	if err != nil {
 		return dto.RegisterOutput{}, errs.Wrap(
 			errs.ErrInvalidInput, err,

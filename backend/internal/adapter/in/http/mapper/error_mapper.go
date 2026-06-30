@@ -89,7 +89,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 			nil,
 		)
 
-	case errors.Is(err, errs.ErrRoomNotFound),
+	case errors.Is(err, errs.ErrUserNotFound),
+		errors.Is(err, errs.ErrRoomNotFound),
 		errors.Is(err, errs.ErrScheduleNotFound),
 		errors.Is(err, errs.ErrSlotNotFound),
 		errors.Is(err, errs.ErrBookingNotFound):

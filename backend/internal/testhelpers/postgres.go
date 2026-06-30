@@ -153,7 +153,7 @@ func (pc *PostgresContainer) TruncateTables(ctx context.Context, tables ...strin
 	}
 
 	truncateQuery := fmt.Sprintf(
-		"TRUNCATE TABLE $1 RESTART IDENTITY CASCADE;",
+		"TRUNCATE TABLE %s RESTART IDENTITY CASCADE;",
 		strings.Join(quotedTables, ", "),
 	)
 

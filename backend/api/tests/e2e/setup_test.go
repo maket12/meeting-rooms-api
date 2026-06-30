@@ -28,6 +28,7 @@ import (
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -266,43 +267,51 @@ func (a *testApp) getAdminToken(t *testing.T) string {
 }
 
 // Helper for e2e tests.
-// Creates the new location with specified parameters.  **
-// Returns the slug of the created location.
-// ** If a slug, name or an address are not specified, then it uses default values instead.
-func (a *testApp) createLocation(t *testing.T, slug *string, name, address *string) string {
-	const path = "/api/v1/admin/locations"
+// Creates the new user with specified parameters.  **
+// Returns the id of the created user.
+// ** If parameters are not specified, then it uses default values instead.
+func (a *testApp) createUser(t *testing.T, email, password, role *string) string {
+	const path = "/register"
 
-	var locSlug, locName, locAddress string
+	var userEmail, userPass, userRole string
 
-	if slug != nil {
-		locSlug = *slug
+	if email != nil {
+		userEmail = *email
 	} else {
-		locSlug = "test_1"
+		userEmail = "test123@gmail.com"
 	}
 
-	if name != nil {
-		locName = *name
+	if password != nil {
+		userPass = *password
 	} else {
-		locName = "Test Location"
+		userPass = "test-pass-123"
 	}
 
-	if address != nil {
-		locAddress = *address
+	if role != nil {
+		userRole = *role
 	} else {
-		locAddress = "Address Of Test Location"
+		userRole = "admin"
 	}
 
 	payload := map[string]interface{}{
-		"slug":    locSlug,
-		"name":    locName,
-		"address": locAddress,
+		"email":    userEmail,
+		"password": userPass,
+		"role":     userRole,
 	}
 
-	resp, err := a.doRequestAuth("POST", path, payload, a.getAdminToken(t))
+	resp, err := a.doRequest("POST", path, payload)
 	require.NoError(t, err)
+
+	var user map[string]map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&user)
+	require.NoError(t, err)
+
+	id := user["user"]["id"].(string)
+	assert.NotEmpty(t, id)
+
 	_ = resp.Body.Close()
 
-	return locSlug
+	return id
 }
 
 func (a *testApp) deleteLocation(t *testing.T, slug string) {
@@ -370,41 +379,4 @@ func (a *testApp) deleteItem(t *testing.T, itemID string) {
 	)
 	require.NoError(t, err)
 	_ = resp.Body.Close()
-}
-
-// Helper for e2e tests.
-// Sends some requests to prepare app for tests:
-//  1. Create location with default values
-//  2. Create several items with default values as well (price is 20050)
-//  3. Update location items with default price and stock amount
-//
-// Returns: slug of location, ids of created items as a slice
-func (a *testApp) seedInventoryData(t *testing.T, itemsCount int) (string, []string) {
-	app := setupE2E(t)
-
-	slug := app.createLocation(t, nil, nil, nil)
-
-	itemIDs := make([]string, 0, itemsCount)
-	for i := 0; i < itemsCount; i++ {
-		itemIDs = append(itemIDs, app.createItem(t, nil))
-	}
-
-	inventory := make([]map[string]interface{}, 0, len(itemIDs))
-	for _, id := range itemIDs {
-		inventory = append(inventory, map[string]interface{}{
-			"item_id":      id,
-			"price":        20050,
-			"is_available": true,
-			"stock_amount": 5,
-		})
-	}
-
-	path := fmt.Sprintf("/api/v1/admin/locations/%s/inventory", slug)
-	body := map[string][]map[string]interface{}{"inventory": inventory}
-
-	resp, err := a.doRequestAuth("PATCH", path, body, app.getAdminToken(t))
-	require.NoError(t, err)
-	_ = resp.Body.Close()
-
-	return slug, itemIDs
 }

@@ -3,21 +3,21 @@ package usecase
 import (
 	"backend/internal/app/dto"
 	"backend/internal/app/errs"
-	port2 "backend/internal/domain/port"
+	"backend/internal/domain/port"
 	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
 )
 
 type LoginUC struct {
-	user     port2.UserRepository
-	password port2.PasswordHasher
-	token    port2.TokenGenerator
+	user     port.UserRepository
+	password port.PasswordHasher
+	token    port.TokenGenerator
 }
 
-func NewLoginUC(user port2.UserRepository,
-	password port2.PasswordHasher,
-	token port2.TokenGenerator,
+func NewLoginUC(user port.UserRepository,
+	password port.PasswordHasher,
+	token port.TokenGenerator,
 ) *LoginUC {
 	return &LoginUC{
 		user:     user,

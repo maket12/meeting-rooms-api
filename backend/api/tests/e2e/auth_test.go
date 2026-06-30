@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"backend/pkg/utils"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -89,7 +90,7 @@ func TestAuth_AllEndpoints(t *testing.T) {
 		userToken = token["token"].(string)
 		assert.NotEmpty(t, userToken)
 
-		resp, err = app.doRequest("POST", "/login", adminPayload)
+		resp, err = app.doRequest("POST", "/dummyLogin", adminPayload)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -103,5 +104,179 @@ func TestAuth_AllEndpoints(t *testing.T) {
 		assert.NotEqual(t, userToken, adminToken,
 			"expected different tokens",
 		)
+	})
+}
+
+func TestAuth_ValidateAndConflicts(t *testing.T) {
+	const (
+		testEmail = "test129@gmail.com"
+		testPass  = "test129"
+	)
+
+	app := setupE2E(t)
+	_ = app.createUser(
+		t, utils.VPtr(testEmail),
+		utils.VPtr(testPass), nil,
+	)
+
+	t.Run("Register - Bad Cases", func(t *testing.T) {
+		const path = "/register"
+
+		type testCase struct {
+			name           string
+			payload        map[string]interface{}
+			expectedStatus int
+			expectedError  string
+		}
+
+		var tests = []testCase{
+			{
+				name: "Bad Request - Email Not Specified",
+				payload: map[string]interface{}{
+					"email":    "",
+					"password": testPass,
+					"role":     "user",
+				},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+			{
+				name: "Bad Request - Password Not Specified",
+				payload: map[string]interface{}{
+					"email":    "test123@gmail.com",
+					"password": "",
+					"role":     "user",
+				},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+			{
+				name: "Bad Request - Role Not Specified",
+				payload: map[string]interface{}{
+					"email":    "test123@gmail.com",
+					"password": testPass,
+					"role":     "",
+				},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+			{
+				name: "Bad Request - Invalid Role",
+				payload: map[string]interface{}{
+					"email":    "test123@gmail.com",
+					"password": testPass,
+					"role":     "backpacker",
+				},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+			{
+				name: "Conflict - User Already Exists",
+				payload: map[string]interface{}{
+					"email":    testEmail,
+					"password": testPass,
+					"role":     "user",
+				},
+				expectedStatus: http.StatusConflict,
+				expectedError:  "user with given email already exists",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				resp, err := app.doRequest("POST", path, tt.payload)
+				require.NoError(t, err)
+
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("Login - Bad Cases", func(t *testing.T) {
+		const path = "/login"
+
+		type testCase struct {
+			name           string
+			payload        map[string]interface{}
+			expectedStatus int
+			expectedError  string
+		}
+
+		var tests = []testCase{
+			{
+				name: "Unauthorized - Invalid Password",
+				payload: map[string]interface{}{
+					"email":    testEmail,
+					"password": "invalid123",
+				},
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid email or password",
+			},
+			{
+				name: "Not Found - User Does Not Exist",
+				payload: map[string]interface{}{
+					"email":    "test123@gmail.com",
+					"password": testPass,
+				},
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid email or password",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				resp, err := app.doRequest("POST", path, tt.payload)
+				require.NoError(t, err)
+
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("Dummy Login - Bad Cases", func(t *testing.T) {
+		const path = "/dummyLogin"
+
+		type testCase struct {
+			name           string
+			payload        map[string]interface{}
+			expectedStatus int
+			expectedError  string
+		}
+
+		var tests = []testCase{
+			{
+				name:           "Bad Request - Invalid Role",
+				payload:        map[string]interface{}{"role": "backpacker"},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				resp, err := app.doRequest("POST", path, tt.payload)
+				require.NoError(t, err)
+
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
 	})
 }

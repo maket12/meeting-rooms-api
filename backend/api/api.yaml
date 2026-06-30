@@ -42,49 +42,12 @@ components:
   schemas:
     ErrorResponse:
       type: object
-      required: [error]
+      required:
+        - error
       properties:
         error:
-          type: object
-          required: [code, message]
-          properties:
-            code:
-              type: string
-              enum:
-                - INVALID_REQUEST
-                - UNAUTHORIZED
-                - NOT_FOUND
-                - ROOM_NOT_FOUND
-                - SLOT_NOT_FOUND
-                - SLOT_ALREADY_BOOKED
-                - BOOKING_NOT_FOUND
-                - FORBIDDEN
-                - SCHEDULE_EXISTS
-                - INTERNAL_ERROR
-            message:
-              type: string
-      example:
-        error:
-          code: INVALID_REQUEST
-          message: invalid request
-
-    InternalErrorResponse:
-      type: object
-      required: [error]
-      properties:
-        error:
-          type: object
-          required: [code, message]
-          properties:
-            code:
-              type: string
-              example: INTERNAL_ERROR
-            message:
-              type: string
-      example:
-        error:
-          code: INTERNAL_ERROR
-          message: internal server error
+          type: string
+          example: "something went wrong"
 
     Token:
       type: object
@@ -216,6 +179,36 @@ components:
           type: integer
           description: Общее количество записей
 
+  responses:
+    UserNotFoundError:
+      description: >
+          Пользователь с данной ролью не существует.
+          Фактически является ошибкой сервера, так как возникает при отсутствии seed данных.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "user not found"
+
+    UserAlreadyExistsError:
+      description: Пользователь с таким email уже существует
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "user with given email already exists"
+
+    InternalError:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "internal error"
+
 paths:
   # ──────────────────────────────────────────────────────────────
   # Auth
@@ -257,15 +250,31 @@ paths:
                   user:
                     $ref: '#/components/schemas/User'
         '400':
-          description: Неверный запрос или email уже занят
+          description: Неверный запрос
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_email:
+                  summary: Email не указан
+                  value:
+                    error: "invalid input"
+                incorrect_password:
+                  summary: Пароль не указан
+                  value:
+                    error: "invalid input"
+                incorrect_role:
+                  summary: Роль не указана или передано недопустимое значение
+                  value:
+                    error: "invalid input"
+        '409':
+          $ref: '#/components/responses/UserAlreadyExistsError'
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   /login:
     post:
@@ -296,16 +305,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Token'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
         '401':
           description: Неверные учётные данные
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example:
+                error: "invalid email or password"
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   /dummyLogin:
     post:
@@ -339,15 +357,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Token'
         '400':
-          description: Неверный запрос (недопустимое значение роли)
+          description: Неверный запрос
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_role:
+                  summary: Недопустимое значение роли
+                  value:
+                    error: "invalid input"
+        '404':
+          $ref: '#/components/responses/UserNotFoundError'
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   # ──────────────────────────────────────────────────────────────
   # Rooms
@@ -376,10 +402,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   /rooms/create:
     post:
@@ -428,10 +451,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   # ──────────────────────────────────────────────────────────────
   # Schedules
@@ -495,10 +515,7 @@ paths:
                   code: SCHEDULE_EXISTS
                   message: schedule for this room already exists and cannot be changed
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   # ──────────────────────────────────────────────────────────────
   # Slots
@@ -551,10 +568,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   # ──────────────────────────────────────────────────────────────
   # Bookings
@@ -623,10 +637,7 @@ paths:
                   code: SLOT_ALREADY_BOOKED
                   message: slot is already booked
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   /bookings/list:
     get:
@@ -684,10 +695,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   /bookings/my:
     get:
@@ -721,10 +729,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'
 
   /bookings/{bookingId}/cancel:
     post:
@@ -769,7 +774,4 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '500':
-          description: Внутренняя ошибка сервера
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/InternalErrorResponse' }
+          $ref: '#/components/responses/InternalError'

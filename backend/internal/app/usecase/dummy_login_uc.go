@@ -3,7 +3,7 @@ package usecase
 import (
 	"backend/internal/app/dto"
 	"backend/internal/app/errs"
-	port2 "backend/internal/domain/port"
+	"backend/internal/domain/port"
 	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
@@ -12,15 +12,15 @@ import (
 )
 
 type DummyLoginUC struct {
-	user    port2.UserRepository
-	jwtGen  port2.TokenGenerator
+	user    port.UserRepository
+	jwtGen  port.TokenGenerator
 	adminID uuid.UUID
 	userID  uuid.UUID
 }
 
 func NewDummyLoginUC(
-	user port2.UserRepository,
-	jwtGen port2.TokenGenerator,
+	user port.UserRepository,
+	jwtGen port.TokenGenerator,
 	adminID uuid.UUID,
 	userID uuid.UUID,
 ) *DummyLoginUC {
@@ -51,7 +51,7 @@ func (uc *DummyLoginUC) Execute(ctx context.Context, in dto.DummyLoginInput) (dt
 	user, err := uc.user.GetByID(ctx, uID)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
-			return dto.DummyLoginOutput{}, errs.ErrInvalidCredentials
+			return dto.DummyLoginOutput{}, errs.ErrUserNotFound
 		}
 		return dto.DummyLoginOutput{}, errs.Wrap(
 			errs.ErrGetUserByIDDB, err,

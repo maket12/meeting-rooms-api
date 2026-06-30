@@ -5,7 +5,7 @@ import (
 	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/usecase"
 	"backend/internal/domain/model"
-	mocks2 "backend/internal/domain/port/mocks"
+	"backend/internal/domain/port/mocks"
 	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
@@ -19,11 +19,10 @@ import (
 
 func TestDummyLoginUC_Execute(t *testing.T) {
 	type adapter struct {
-		user   *mocks2.MockUserRepository
-		jwtGen *mocks2.MockTokenGenerator
+		user   *mocks.MockUserRepository
+		jwtGen *mocks.MockTokenGenerator
 	}
 
-	// Фиксируем id для теста
 	adminID := uuid.New()
 	userID := uuid.New()
 
@@ -69,7 +68,7 @@ func TestDummyLoginUC_Execute(t *testing.T) {
 			mockBehaviour: func(a adapter) {
 				a.user.EXPECT().GetByID(mock.Anything, adminID).Return(nil, pkgerrs.ErrObjectNotFound)
 			},
-			expectErr: ucerrs.ErrInvalidCredentials,
+			expectErr: ucerrs.ErrUserNotFound,
 		},
 		{
 			name:  "Failure - DB Error",
@@ -94,8 +93,8 @@ func TestDummyLoginUC_Execute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Init Mocks
-			userRepo := mocks2.NewMockUserRepository(t)
-			jwtGen := mocks2.NewMockTokenGenerator(t)
+			userRepo := mocks.NewMockUserRepository(t)
+			jwtGen := mocks.NewMockTokenGenerator(t)
 
 			tt.mockBehaviour(adapter{user: userRepo, jwtGen: jwtGen})
 
