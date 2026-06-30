@@ -37,9 +37,7 @@ func (s *RoomRepoSuite) SetupSuite() {
 }
 
 func (s *RoomRepoSuite) SetupTest() {
-	_, err := s.dbClient.Pool.Exec(s.ctx,
-		"TRUNCATE TABLE rooms RESTART IDENTITY CASCADE",
-	)
+	err := s.pgContainer.TruncateTables(s.ctx, "rooms")
 	s.Require().NoError(err)
 }
 

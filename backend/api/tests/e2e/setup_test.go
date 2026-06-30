@@ -1,8 +1,9 @@
-//go:build e2e
+///go:build e2e
 
 package e2e
 
 import (
+	adapterconf "backend/internal/adapter/out/conference"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -11,35 +12,27 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"sync"
 	"testing"
 
 	"backend/cmd/app/config"
 	adapterhttp "backend/internal/adapter/in/http"
-	adapterpg "backend/internal/adapter/out/postgres"
-	adapteryacloud "backend/internal/adapter/out/yacloud"
-	adapteryookassa "backend/internal/adapter/out/yookassa"
+	adapterpostgres "backend/internal/adapter/out/postgres"
 	"backend/internal/app/usecase"
 	infrajwt "backend/internal/infrastructure/jwt"
-	infrapass "backend/internal/infrastructure/password"
-	infraqrcode "backend/internal/infrastructure/qrcode"
+	infrapasswd "backend/internal/infrastructure/password"
 	"backend/internal/testhelpers"
 	pkgpostgres "backend/pkg/postgres"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	s3Cfg "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	migrationVersion = 7
+	migrationVersion = 5
 	apiVersion       = "v1"
 )
 
@@ -48,7 +41,7 @@ type testApp struct {
 	client     *http.Client
 	pg         *testhelpers.PostgresContainer
 	dbClient   *pkgpostgres.Client
-	cfg        *config.Config
+	cfg        *config.TestConfig
 	adminToken *string
 }
 
@@ -79,7 +72,7 @@ func newLogger(level string) *slog.Logger {
 	}))
 }
 
-func newPostgresClient(ctx context.Context, cfg *config.Config) (*pkgpostgres.Client, error) {
+func newPostgresClient(ctx context.Context, cfg *config.TestConfig) (*pkgpostgres.Client, error) {
 	pgConfig := pkgpostgres.NewConfig(
 		cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPassword,
 		cfg.DBName, cfg.DbSSLMode, cfg.DbMaxConn,
@@ -89,72 +82,11 @@ func newPostgresClient(ctx context.Context, cfg *config.Config) (*pkgpostgres.Cl
 	return pkgpostgres.NewClient(ctx, pgConfig)
 }
 
-func newS3Client(ctx context.Context, internalCfg *config.Config) (*s3.Client, error) {
-	cred := credentials.NewStaticCredentialsProvider(
-		internalCfg.S3AccessKey,
-		internalCfg.S3SecretKey,
-		"",
-	)
-
-	cfg, err := s3Cfg.LoadDefaultConfig(
-		ctx,
-		s3Cfg.WithRegion(internalCfg.S3Region),
-		s3Cfg.WithCredentialsProvider(cred),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load s3 storage config: %w", err)
-	}
-
-	return s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String(internalCfg.S3Endpoint)
-	}), nil
-}
-
-func seedAdmins(
-	ctx context.Context,
-	cfg *config.Config,
-	adminRepo *adapterpg.AdminRepository,
-	passHasher *infrapass.Hasher,
-) error {
-	for _, seed := range cfg.GetAdminSeeds() {
-		hash, err := passHasher.Hash(seed.Password)
-		if err != nil {
-			return fmt.Errorf("failed to hash password for login %s: %w", seed.Login, err)
-		}
-
-		// Поскольку тут UPSERT, метод безопасно отработает как на пустой, так и на заполненной базе
-		err = adminRepo.EnsureAdmin(ctx, seed.Login, hash)
-		if err != nil {
-			return fmt.Errorf("failed to ensure admin for login %s: %w", seed.Login, err)
-		}
-	}
-	return nil
-}
-
 func setupE2E(t *testing.T) *testApp {
 	once.Do(func() {
 		ctx := context.Background()
 
-		_ = os.Setenv("DB_HOST", "test_host")
-		_ = os.Setenv("DB_USER", "test_user")
-		_ = os.Setenv("DB_PASSWORD", "test_pass")
-		_ = os.Setenv("DB_NAME", "test_db")
-
-		_ = os.Setenv("AUTH_SECRET", "super-secret-key-for-tests-32-chars!")
-		_ = os.Setenv("AUTH_TTL", "24h")
-		_ = os.Setenv("ADMIN_SEEDS", "test:test123")
-
-		_ = os.Setenv("YOOKASSA_SHOP_ID", "1344511")
-		_ = os.Setenv("YOOKASSA_API_KEY", "test_ivvXDKubIzQ-vo5_RMv5Z9a4zSQ9BHfhr7VybxhzabE")
-		_ = os.Setenv("QR_CODE_BASE_URL", "http://localhost:8080")
-
-		_ = os.Setenv("S3_BUCKET_NAME", "foodstock-test")
-		_ = os.Setenv("S3_ACCESS_KEY", "YCAJEArxLfMxD5DYKG-b-6lSs")
-		_ = os.Setenv("S3_SECRET_KEY", "YCOWxXBb6v21R6SDYw_wyn20iKLDg632t8jBxa6s")
-		_ = os.Setenv("S3_ENDPOINT", "https://storage.yandexcloud.net")
-		_ = os.Setenv("S3_REGION", "ru-central1")
-
-		cfg, err := config.Load()
+		cfg, err := config.LoadTest()
 		require.NoError(t, err)
 
 		pg, err := testhelpers.StartPostgresContainer(ctx)
@@ -176,59 +108,71 @@ func setupE2E(t *testing.T) *testApp {
 
 		trManager := manager.Must(trmpgx.NewDefaultFactory(pgClient.Pool))
 
-		adminRepo := adapterpg.NewAdminRepository(pgClient, trmpgx.DefaultCtxGetter)
-		locationRepo := adapterpg.NewLocationRepository(pgClient, trmpgx.DefaultCtxGetter)
-		itemRepo := adapterpg.NewItemRepository(pgClient, trmpgx.DefaultCtxGetter)
-		locationItemRepo := adapterpg.NewLocationItemRepository(pgClient, trmpgx.DefaultCtxGetter)
-		orderRepo := adapterpg.NewOrderRepository(pgClient, trmpgx.DefaultCtxGetter)
-		orderItemRepo := adapterpg.NewOrderItemRepository(pgClient, trmpgx.DefaultCtxGetter)
-		transactionRepo := adapterpg.NewTransactionRepository(pgClient, trmpgx.DefaultCtxGetter)
+		// Repositories
+		userRepo := adapterpostgres.NewUserRepository(pgClient, trmpgx.DefaultCtxGetter)
+		roomRepo := adapterpostgres.NewRoomRepository(pgClient, trmpgx.DefaultCtxGetter)
+		scheduleRepo := adapterpostgres.NewScheduleRepository(pgClient, trmpgx.DefaultCtxGetter)
+		slotRepo := adapterpostgres.NewSlotRepository(pgClient, trmpgx.DefaultCtxGetter)
+		bookingRepo := adapterpostgres.NewBookingRepository(pgClient, trmpgx.DefaultCtxGetter)
+		conferenceService := adapterconf.NewConferenceService("available")
+		jwtGen := infrajwt.NewTokenGenerator(cfg.AuthSecret, cfg.AuthTTL)
+		passHasher := infrapasswd.NewHasher(cfg.PasswordCost)
 
-		tokenGen := infrajwt.NewGenerator(cfg.AuthSecret, cfg.AuthTTL)
-		passHasher := infrapass.NewHasher(cfg.PasswordCost)
-		qrCodeGen := infraqrcode.NewGenerator(cfg.QRCodeBaseURL, cfg.QRCodeSize)
-		paymentGateway := adapteryookassa.NewPaymentGateway(cfg.YookassaShopID, cfg.YookassaAPIKey, cfg.YookassaTimeout)
-
-		s3Client, err := newS3Client(ctx, cfg)
-		require.NoError(t, err)
-		mediaStorageGateway := adapteryacloud.NewYandexS3Storage(s3Client, cfg.S3BucketName)
-
-		err = seedAdmins(ctx, cfg, adminRepo, passHasher)
+		// Adding seed-data
+		err = userRepo.EnsureDummyUsers(ctx, cfg.DummyAdminID, cfg.DummyUserID)
 		require.NoError(t, err)
 
-		adminAuthUC := usecase.NewAdminAuthUC(adminRepo, passHasher, tokenGen)
-		createLocationUC := usecase.NewCreateLocationUC(trManager, locationRepo, itemRepo, locationItemRepo)
-		getLocationUC := usecase.NewGetLocationUC(locationRepo)
-		updateLocationUC := usecase.NewUpdateLocationUC(locationRepo)
-		deleteLocationUC := usecase.NewDeleteLocationUC(trManager, locationRepo, locationItemRepo)
-		listLocationsUC := usecase.NewListLocationsUC(locationRepo)
-		getQRCodeUC := usecase.NewGetQRCodeUC(locationRepo, qrCodeGen)
-		getCatalogUC := usecase.NewGetCatalogUC(locationRepo, itemRepo, locationItemRepo)
-		createItemUC := usecase.NewCreateItemUC(trManager, locationRepo, itemRepo, locationItemRepo)
-		getItemUC := usecase.NewGetItemUC(itemRepo)
-		updateItemUC := usecase.NewUpdateItemUC(itemRepo)
-		deleteItemUC := usecase.NewDeleteItemUC(trManager, itemRepo, locationItemRepo)
-		listItemsUC := usecase.NewListItemsUC(itemRepo)
-		createOrderUC := usecase.NewCreateOrderUC(trManager, locationRepo, locationItemRepo, orderRepo, orderItemRepo, transactionRepo, paymentGateway)
-		getInventoryUC := usecase.NewGetInventoryUC(locationRepo, locationItemRepo)
-		updateInventoryUC := usecase.NewUpdateInventoryUC(trManager, locationRepo, locationItemRepo)
-		getOrderStatusUC := usecase.NewGetOrderStatusUC(trManager, orderRepo, transactionRepo, paymentGateway)
-		uploadMediaUC := usecase.NewUploadMediaUC(mediaStorageGateway)
+		dummyLoginUC := usecase.NewDummyLoginUC(
+			userRepo, jwtGen,
+			cfg.DummyAdminID, cfg.DummyUserID,
+		)
+		registerUC := usecase.NewRegisterUC(userRepo, passHasher)
+		loginUC := usecase.NewLoginUC(userRepo, passHasher, jwtGen)
+		createRoomUC := usecase.NewCreateRoomUC(roomRepo)
+		listRoomsUC := usecase.NewListRoomsUC(roomRepo)
+		createScheduleUC := usecase.NewCreateScheduleUC(
+			trManager, roomRepo, scheduleRepo, slotRepo,
+		)
+		listSlotsUC := usecase.NewListSlotsUC(
+			trManager, roomRepo, scheduleRepo, slotRepo,
+		)
+		createBookingUC := usecase.NewCreateBookingUC(
+			trManager, slotRepo,
+			bookingRepo, conferenceService,
+		)
+		cancelBookingUC := usecase.NewCancelBookingUC(bookingRepo)
+		listMyBookingsUC := usecase.NewListMyBookingsUC(bookingRepo)
+		listBookingsUC := usecase.NewListBookingsUC(bookingRepo)
 
-		systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
-		authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
-		clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC, getOrderStatusUC)
-		locationsHandler := adapterhttp.NewLocationHandler(logger, createLocationUC, getLocationUC, updateLocationUC, deleteLocationUC, listLocationsUC, getQRCodeUC)
-		itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, getItemUC, updateItemUC, deleteItemUC, listItemsUC)
-		inventoryHandler := adapterhttp.NewInventoryHandler(logger, getInventoryUC, updateInventoryUC)
-		mediaHandler := adapterhttp.NewMediaHandler(logger, uploadMediaUC)
+		authHandler := adapterhttp.NewAuthHandler(
+			logger,
+			dummyLoginUC,
+			registerUC,
+			loginUC,
+		)
+		roomHandler := adapterhttp.NewRoomHandler(
+			logger,
+			createRoomUC,
+			listRoomsUC,
+		)
+		scheduleHandler := adapterhttp.NewScheduleHandler(logger, createScheduleUC)
+		slotHandler := adapterhttp.NewSlotHandler(logger, listSlotsUC)
+		bookingHandler := adapterhttp.NewBookingHandler(
+			logger,
+			createBookingUC,
+			cancelBookingUC,
+			listMyBookingsUC,
+			listBookingsUC,
+		)
 
 		router := adapterhttp.NewRouter(
-			tokenGen, systemHandler,
-			authHandler, clientHandler,
-			locationsHandler, itemHandler,
-			inventoryHandler, mediaHandler,
-		).InitRoutes()
+			authHandler,
+			roomHandler,
+			scheduleHandler,
+			slotHandler,
+			bookingHandler,
+			jwtGen,
+		).InitRoutes(logger)
 
 		ts := httptest.NewServer(router)
 
@@ -249,27 +193,14 @@ func setupE2E(t *testing.T) *testApp {
 // cleanData Uses migration tools to reset the database in its pure form
 // and provides the necessary seed data.
 func (a *testApp) cleanData(t *testing.T, ctx context.Context) {
-	tables := []string{
-		"order_items",
-		"orders",
-		"transactions",
-		"location_items",
-		"items",
-		"locations",
-		"admins",
-	}
-
-	query := fmt.Sprintf("TRUNCATE %s RESTART IDENTITY CASCADE", strings.Join(tables, ", "))
-
-	_, err := a.dbClient.Pool.Exec(ctx, query)
+	err := a.pg.TruncateTables(ctx)
 	require.NoError(t, err, "failed to truncate tables")
 
-	_, _ = a.dbClient.Pool.Exec(ctx, "DISCARD PLANS")
+	userRepo := adapterpostgres.NewUserRepository(a.dbClient, trmpgx.DefaultCtxGetter)
 
-	adminRepo := adapterpg.NewAdminRepository(a.dbClient, trmpgx.DefaultCtxGetter)
-	passHasher := infrapass.NewHasher(a.cfg.PasswordCost)
-	err = seedAdmins(ctx, a.cfg, adminRepo, passHasher)
-	require.NoError(t, err, "failed to re-seed admins")
+	// Adding seed-data
+	err = userRepo.EnsureDummyUsers(ctx, a.cfg.DummyAdminID, a.cfg.DummyUserID)
+	require.NoError(t, err, "failed to re-seed data")
 }
 
 func (a *testApp) doRequest(method, path string, body interface{}) (*http.Response, error) {

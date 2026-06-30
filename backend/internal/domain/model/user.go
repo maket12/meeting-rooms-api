@@ -26,7 +26,7 @@ type User struct {
 	createdAt    time.Time
 }
 
-func NewUser(email, passwordHash string, role UserRole) (*User, error) {
+func NewUser(email, passwordHash, role string) (*User, error) {
 	if email == "" {
 		return nil, pkgerrs.NewValueRequiredError("email")
 	}
@@ -37,7 +37,7 @@ func NewUser(email, passwordHash string, role UserRole) (*User, error) {
 	switch {
 	case role == "":
 		return nil, pkgerrs.NewValueRequiredError("role")
-	case role != RoleAdmin && role != RoleUser:
+	case role != RoleAdmin.String() && role != RoleUser.String():
 		return nil, pkgerrs.NewValueInvalidError("role")
 	}
 
@@ -45,7 +45,7 @@ func NewUser(email, passwordHash string, role UserRole) (*User, error) {
 		id:           uuid.New(),
 		email:        email,
 		passwordHash: passwordHash,
-		role:         role,
+		role:         UserRole(role),
 		createdAt:    time.Now().UTC(),
 	}, nil
 }

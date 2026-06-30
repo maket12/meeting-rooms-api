@@ -34,9 +34,7 @@ func (s *SlotRepoSuite) SetupSuite() {
 }
 
 func (s *SlotRepoSuite) SetupTest() {
-	_, err := s.dbClient.Pool.Exec(s.ctx,
-		"TRUNCATE TABLE rooms, slots RESTART IDENTITY CASCADE",
-	)
+	err := s.pgContainer.TruncateTables(s.ctx, "slots", "rooms")
 	s.Require().NoError(err)
 
 	s.seedData()

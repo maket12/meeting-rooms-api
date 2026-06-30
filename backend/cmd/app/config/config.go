@@ -32,7 +32,7 @@ type Config struct {
 	PasswordCost int `env:"PASSWORD_COST" envDefault:"10"`
 
 	// Service
-	GRPCPort    int    `env:"AD_GRPC_PORT" envDefault:"8080"`
+	HttpPort    int    `env:"AD_HTTP_PORT" envDefault:"8080"`
 	LogLevel    string `env:"AD_LOG_LEVEL" envDefault:"INFO"`
 	Environment string `env:"AD_ENVIRONMENT" envDefault:"development"`
 }
@@ -47,24 +47,38 @@ func Load() (*Config, error) {
 	fmt.Printf("   Environment: %s\n", cfg.Environment)
 	fmt.Printf("   Log Level: %s\n", cfg.LogLevel)
 	fmt.Printf("   Postgres Host: %s\n", cfg.DbHost)
-	fmt.Printf("   HTTP Port: %d\n", cfg.GRPCPort)
+	fmt.Printf("   HTTP Port: %d\n", cfg.HttpPort)
 
 	return cfg, nil
 }
 
 type TestConfig struct {
 	// Postgres
-	DbHost     string `env:"TEST_DB_HOST,required"`
+	DbHost     string `env:"TEST_DB_HOST" envDefault:"localhost"`
 	DbPort     int    `env:"TEST_DB_PORT" envDefault:"5433"`
-	DbUser     string `env:"TEST_DB_USER,required"`
-	DbPassword string `env:"TEST_DB_PASSWORD,required"`
-	DBName     string `env:"TEST_DB_NAME,required"`
-	DbSSLMode  string `env:"TEST_DB_SSL_MODE" envDefault:"prefer"`
+	DbUser     string `env:"TEST_DB_USER" envDefault:"test"`
+	DbPassword string `env:"TEST_DB_PASSWORD" envDefault:"test123"`
+	DBName     string `env:"TEST_DB_NAME" envDefault:"test-db"`
+	DbSSLMode  string `env:"TEST_DB_SSL_MODE" envDefault:"disable"`
 
 	DbMaxConn         int           `env:"TEST_DB_MAX_CONNECTIONS" envDefault:"30"`
 	DbMinConn         int           `env:"TEST_DB_MIN_CONNECTIONS" envDefault:"10"`
 	DbMaxConnLifeTime time.Duration `env:"TEST_DB_MAX_CONNECTION_LIFETIME" envDefault:"10m"`
 	DbMaxConnIdleTime time.Duration `env:"TEST_DB_MAX_CONNECTION_IDLETIME" envDefault:"5m"`
+
+	// Auth constants
+	AuthSecret   string        `env:"AUTH_SECRET" envDefault:"test-token"`
+	AuthTTL      time.Duration `env:"AUTH_TTL" envDefault:"1h"`
+	DummyAdminID uuid.UUID     `env:"DUMMY_ADMIN_ID" envDefault:"00000000-0000-0000-0000-000000000001"`
+	DummyUserID  uuid.UUID     `env:"DUMMY_USER_ID" envDefault:"00000000-0000-0000-0000-000000000002"`
+
+	// Password hasher
+	PasswordCost int `env:"PASSWORD_COST" envDefault:"10"`
+
+	// Service
+	HttpPort    int    `env:"AD_HTTP_PORT" envDefault:"8080"`
+	LogLevel    string `env:"AD_LOG_LEVEL" envDefault:"INFO"`
+	Environment string `env:"AD_ENVIRONMENT" envDefault:"test"`
 }
 
 func LoadTest() (*TestConfig, error) {
@@ -74,7 +88,10 @@ func LoadTest() (*TestConfig, error) {
 	}
 
 	fmt.Printf("Config loaded successfully\n")
+	fmt.Printf("   Environment: %s\n", cfg.Environment)
+	fmt.Printf("   Log Level: %s\n", cfg.LogLevel)
 	fmt.Printf("   Postgres Host: %s\n", cfg.DbHost)
+	fmt.Printf("   HTTP Port: %d\n", cfg.HttpPort)
 
 	return cfg, nil
 }

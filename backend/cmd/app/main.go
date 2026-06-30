@@ -2,10 +2,10 @@ package main
 
 import (
 	"backend/cmd/app/config"
-	http2 "backend/internal/adapter/in/http"
+	adapterhttp "backend/internal/adapter/in/http"
 	adapterconf "backend/internal/adapter/out/conference"
-	"backend/internal/adapter/out/postgres"
-	usecase2 "backend/internal/app/usecase"
+	adapterpostgres "backend/internal/adapter/out/postgres"
+	"backend/internal/app/usecase"
 	infrajwt "backend/internal/infrastructure/jwt"
 	infrapasswd "backend/internal/infrastructure/password"
 	pkgpostgres "backend/pkg/postgres"
@@ -89,11 +89,11 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	trManager := manager.Must(trmpgx.NewDefaultFactory(pgClient.Pool))
 
 	// Repositories
-	userRepo := postgres.NewUserRepository(pgClient, trmpgx.DefaultCtxGetter)
-	roomRepo := postgres.NewRoomRepository(pgClient, trmpgx.DefaultCtxGetter)
-	scheduleRepo := postgres.NewScheduleRepository(pgClient, trmpgx.DefaultCtxGetter)
-	slotRepo := postgres.NewSlotRepository(pgClient, trmpgx.DefaultCtxGetter)
-	bookingRepo := postgres.NewBookingRepository(pgClient, trmpgx.DefaultCtxGetter)
+	userRepo := adapterpostgres.NewUserRepository(pgClient, trmpgx.DefaultCtxGetter)
+	roomRepo := adapterpostgres.NewRoomRepository(pgClient, trmpgx.DefaultCtxGetter)
+	scheduleRepo := adapterpostgres.NewScheduleRepository(pgClient, trmpgx.DefaultCtxGetter)
+	slotRepo := adapterpostgres.NewSlotRepository(pgClient, trmpgx.DefaultCtxGetter)
+	bookingRepo := adapterpostgres.NewBookingRepository(pgClient, trmpgx.DefaultCtxGetter)
 	conferenceService := adapterconf.NewConferenceService("available")
 	jwtGen := infrajwt.NewTokenGenerator(cfg.AuthSecret, cfg.AuthTTL)
 	passHasher := infrapasswd.NewHasher(cfg.PasswordCost)
@@ -104,45 +104,43 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	}
 
 	// Use-cases
-	dummyLoginUC := usecase2.NewDummyLoginUC(
+	dummyLoginUC := usecase.NewDummyLoginUC(
 		userRepo, jwtGen,
 		cfg.DummyAdminID, cfg.DummyUserID,
 	)
-	registerUC := usecase2.NewRegisterUC(userRepo, passHasher)
-	loginUC := usecase2.NewLoginUC(userRepo, passHasher, jwtGen)
-	createRoomUC := usecase2.NewCreateRoomUC(roomRepo)
-	listRoomsUC := usecase2.NewListRoomsUC(roomRepo)
-	createScheduleUC := usecase2.NewCreateScheduleUC(
+	registerUC := usecase.NewRegisterUC(userRepo, passHasher)
+	loginUC := usecase.NewLoginUC(userRepo, passHasher, jwtGen)
+	createRoomUC := usecase.NewCreateRoomUC(roomRepo)
+	listRoomsUC := usecase.NewListRoomsUC(roomRepo)
+	createScheduleUC := usecase.NewCreateScheduleUC(
 		trManager, roomRepo, scheduleRepo, slotRepo,
 	)
-	listSlotsUC := usecase2.NewListSlotsUC(
+	listSlotsUC := usecase.NewListSlotsUC(
 		trManager, roomRepo, scheduleRepo, slotRepo,
 	)
-	createBookingUC := usecase2.NewCreateBookingUC(
+	createBookingUC := usecase.NewCreateBookingUC(
 		trManager, slotRepo,
 		bookingRepo, conferenceService,
 	)
-	cancelBookingUC := usecase2.NewCancelBookingUC(bookingRepo)
-	listMyBookingsUC := usecase2.NewListMyBookingsUC(bookingRepo)
-	listBookingsUC := usecase2.NewListBookingsUC(bookingRepo)
+	cancelBookingUC := usecase.NewCancelBookingUC(bookingRepo)
+	listMyBookingsUC := usecase.NewListMyBookingsUC(bookingRepo)
+	listBookingsUC := usecase.NewListBookingsUC(bookingRepo)
 
 	// Handlers
-	authHandler := http2.NewAuthHandler(
+	authHandler := adapterhttp.NewAuthHandler(
 		logger,
 		dummyLoginUC,
 		registerUC,
 		loginUC,
 	)
-	roomHandler := http2.NewRoomHandler(
+	roomHandler := adapterhttp.NewRoomHandler(
 		logger,
 		createRoomUC,
 		listRoomsUC,
 	)
-	scheduleHandler := http2.NewScheduleHandler(
-		logger, createScheduleUC,
-	)
-	slotHandler := http2.NewSlotHandler(logger, listSlotsUC)
-	bookingHandler := http2.NewBookingHandler(
+	scheduleHandler := adapterhttp.NewScheduleHandler(logger, createScheduleUC)
+	slotHandler := adapterhttp.NewSlotHandler(logger, listSlotsUC)
+	bookingHandler := adapterhttp.NewBookingHandler(
 		logger,
 		createBookingUC,
 		cancelBookingUC,
@@ -150,7 +148,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		listBookingsUC,
 	)
 
-	router := http2.NewRouter(
+	router := adapterhttp.NewRouter(
 		authHandler,
 		roomHandler,
 		scheduleHandler,

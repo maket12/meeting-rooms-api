@@ -11,20 +11,18 @@ import (
 )
 
 func TestNewUser(t *testing.T) {
-	t.Parallel()
-
 	type testCase struct {
 		name         string
 		email        string
 		passwordHash string
-		role         model.UserRole
+		role         string
 		expect       error
 	}
 
 	var (
 		testEmail    = "super-test@avito.ru"
 		testPassword = "hashed-password"
-		testRole     = model.UserRole("admin")
+		testRole     = "admin"
 	)
 
 	var testCases = []testCase{
@@ -76,8 +74,7 @@ func TestNewUser(t *testing.T) {
 				assert.True(t, user.ID() != uuid.Nil)
 				assert.Equal(t, tt.email, user.Email())
 				assert.Equal(t, tt.passwordHash, user.PasswordHash())
-				assert.Equal(t, tt.role, user.Role())
-				assert.True(t, user.Role().String() == string(testRole))
+				assert.Equal(t, tt.role, user.Role().String())
 			} else {
 				require.Error(t, err)
 				assert.ErrorIs(t, err, tt.expect)

@@ -31,9 +31,7 @@ func (s *ScheduleRepoSuite) SetupSuite() {
 }
 
 func (s *ScheduleRepoSuite) SetupTest() {
-	_, err := s.dbClient.Pool.Exec(s.ctx,
-		"TRUNCATE TABLE schedules, rooms RESTART IDENTITY CASCADE",
-	)
+	err := s.pgContainer.TruncateTables(s.ctx, "rooms", "schedules")
 	s.Require().NoError(err)
 
 	s.seedData()

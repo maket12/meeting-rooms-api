@@ -5,20 +5,20 @@ import (
 	"backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/model"
-	port2 "backend/internal/domain/port"
+	"backend/internal/domain/port"
 	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
 )
 
 type RegisterUC struct {
-	user     port2.UserRepository
-	password port2.PasswordHasher
+	user     port.UserRepository
+	password port.PasswordHasher
 }
 
 func NewRegisterUC(
-	user port2.UserRepository,
-	password port2.PasswordHasher,
+	user port.UserRepository,
+	password port.PasswordHasher,
 ) *RegisterUC {
 	return &RegisterUC{
 		user:     user,
