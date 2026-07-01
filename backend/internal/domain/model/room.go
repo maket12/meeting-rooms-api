@@ -23,7 +23,7 @@ func NewRoom(
 	capacity *int,
 ) (*Room, error) {
 	if name == "" {
-		return nil, pkgerrs.NewValueRequiredError("testName")
+		return nil, pkgerrs.NewValueRequiredError("name")
 	}
 	if description != nil && *description == "" {
 		return nil, pkgerrs.NewValueInvalidError("description")

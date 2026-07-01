@@ -70,7 +70,7 @@ components:
         role:
           type: string
           enum: [admin, user]
-        createdAt:
+        created_at:
           type: string
           format: date-time
           nullable: true
@@ -90,7 +90,7 @@ components:
         capacity:
           type: integer
           nullable: true
-        createdAt:
+        created_at:
           type: string
           format: date-time
           nullable: true
@@ -102,21 +102,21 @@ components:
         id:
           type: string
           format: uuid
-        roomId:
+        room_id:
           type: string
           format: uuid
-        daysOfWeek:
+        days_of_week:
           type: array
           items:
             type: integer
             minimum: 1
             maximum: 7
           description: "1=Пн .. 7=Вс, дни доступности. Каждое значение должно быть в диапазоне 1–7."
-        startTime:
+        start_time:
           type: string
           pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
           description: Время начала (HH:MM) в рамках дня. Интерпретируется как UTC.
-        endTime:
+        end_time:
           type: string
           pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
           description: Время окончания (HH:MM) в рамках дня. Интерпретируется как UTC.
@@ -128,7 +128,7 @@ components:
         id:
           type: string
           format: uuid
-        roomId:
+        room_id:
           type: string
           format: uuid
         start:
@@ -147,20 +147,20 @@ components:
         id:
           type: string
           format: uuid
-        slotId:
+        slot_id:
           type: string
           format: uuid
-        userId:
+        user_id:
           type: string
           format: uuid
         status:
           type: string
           enum: [active, cancelled]
-        conferenceLink:
+        conference_link:
           type: string
           format: uri
           nullable: true
-        createdAt:
+        created_at:
           type: string
           format: date-time
           nullable: true
@@ -172,7 +172,7 @@ components:
         page:
           type: integer
           description: Текущая страница (начиная с 1)
-        pageSize:
+        page_size:
           type: integer
           description: Размер страницы
         total:
@@ -180,6 +180,31 @@ components:
           description: Общее количество записей
 
   responses:
+    UnauthorizedError:
+      description: Ошибка авторизации
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missing_header:
+              summary: Отсутствует заголовок
+              value:
+                error: "missing auth header"
+            invalid_token:
+              summary: Невалидный или просроченный токен
+              value:
+                error: "invalid or expired token"
+
+    ForbiddenError:
+      description: Недостаточно прав для совершения операции
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "insufficient permissions"
+
     UserNotFoundError:
       description: >
           Пользователь с данной ролью не существует.
@@ -397,10 +422,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/Room'
         '401':
-          description: Не авторизован
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -440,16 +462,27 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_name:
+                  summary: Имя не указано
+                  value:
+                    error: "invalid input"
+                incorrect_description:
+                  summary: Некорректное описание
+                  value:
+                    error: "invalid input"
+                incorrect_capacity:
+                  summary: Некорректное значение вместимости
+                  value:
+                    error: "invalid input"
         '401':
-          description: Не авторизован
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: '#/components/responses/UnauthorizedError'
         '403':
-          description: Доступ запрещён (требуется роль admin)
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: "#/components/responses/ForbiddenError"
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -491,15 +524,9 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '401':
-          description: Не авторизован
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: '#/components/responses/UnauthorizedError'
         '403':
-          description: Доступ запрещён (требуется роль admin)
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: "#/components/responses/ForbiddenError"
         '404':
           description: Переговорка не найдена
           content:
@@ -558,10 +585,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '401':
-          description: Не авторизован
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: '#/components/responses/UnauthorizedError'
         '404':
           description: Переговорка не найдена
           content:
@@ -613,15 +637,9 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '401':
-          description: Не авторизован
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: '#/components/responses/UnauthorizedError'
         '403':
-          description: Доступ запрещён (бронирование доступно только роли user)
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: "#/components/responses/ForbiddenError"
         '404':
           description: Слот не найден
           content:
@@ -685,15 +703,9 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
         '401':
-          description: Не авторизован
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: '#/components/responses/UnauthorizedError'
         '403':
-          description: Доступ запрещён (только admin)
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: "#/components/responses/ForbiddenError"
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -719,15 +731,9 @@ paths:
                     items:
                       $ref: '#/components/schemas/Booking'
         '401':
-          description: Не авторизован
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: '#/components/responses/UnauthorizedError'
         '403':
-          description: Доступ запрещён (только user)
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: "#/components/responses/ForbiddenError"
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -755,19 +761,9 @@ paths:
                   booking:
                     $ref: '#/components/schemas/Booking'
         '401':
-          description: Не авторизован
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: '#/components/responses/UnauthorizedError'
         '403':
-          description: Не своя бронь или роль не user
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example:
-                error:
-                  code: FORBIDDEN
-                  message: cannot cancel another user's booking
+          $ref: "#/components/responses/ForbiddenError"
         '404':
           description: Бронь не найдена
           content:

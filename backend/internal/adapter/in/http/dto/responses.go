@@ -17,7 +17,7 @@ type UserResponse struct {
 	ID        string `json:"id"`
 	Email     string `json:"email"`
 	Role      string `json:"role"`
-	CreatedAt string `json:"createdAt"`
+	CreatedAt string `json:"created_at"`
 }
 
 type RegisterResponse struct {
@@ -46,10 +46,10 @@ type ListRoomsResponse struct {
 
 type ScheduleResponse struct {
 	ID         string `json:"id"`
-	RoomID     string `json:"roomId"`
-	DaysOfWeek []int  `json:"daysOfWeek"`
-	StartTime  string `json:"startTime"`
-	EndTime    string `json:"endTime"`
+	RoomID     string `json:"room_id"`
+	DaysOfWeek []int  `json:"days_of_week"`
+	StartTime  string `json:"start_time"`
+	EndTime    string `json:"end_time"`
 }
 
 type CreateScheduleResponse struct {
@@ -58,7 +58,7 @@ type CreateScheduleResponse struct {
 
 type SlotResponse struct {
 	ID     string `json:"id"`
-	RoomID string `json:"roomId"`
+	RoomID string `json:"room_id"`
 	Start  string `json:"start"`
 	End    string `json:"end"`
 }
@@ -69,16 +69,16 @@ type ListSlotsResponse struct {
 
 type BookingResponse struct {
 	ID             string  `json:"id"`
-	SlotID         string  `json:"slotId"`
-	UserID         string  `json:"userId"`
+	SlotID         string  `json:"slot_id"`
+	UserID         string  `json:"user_id"`
 	Status         string  `json:"status"`
-	ConferenceLink *string `json:"conferenceLink"`
-	CreatedAt      string  `json:"createdAt"`
+	ConferenceLink *string `json:"conference_link"`
+	CreatedAt      string  `json:"created_at"`
 }
 
 type PaginationResponse struct {
 	Page     int `json:"page"`
-	PageSize int `json:"pageSize"`
+	PageSize int `json:"page_size"`
 	Total    int `json:"total"`
 }
 

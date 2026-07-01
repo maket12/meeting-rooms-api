@@ -22,13 +22,15 @@ func TestAuth_AllEndpoints(t *testing.T) {
 	)
 
 	t.Run("Register", func(t *testing.T) {
+		const path = "/register"
+
 		payload := map[string]interface{}{
 			"email":    email,
 			"password": password,
 			"role":     "admin",
 		}
 
-		resp, err := app.doRequest("POST", "/register", payload)
+		resp, err := app.makeRequest(http.MethodPost, path, payload)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
@@ -51,12 +53,14 @@ func TestAuth_AllEndpoints(t *testing.T) {
 	})
 
 	t.Run("Login", func(t *testing.T) {
+		const path = "/login"
+
 		payload := map[string]interface{}{
 			"email":    email,
 			"password": password,
 		}
 
-		resp, err := app.doRequest("POST", "/login", payload)
+		resp, err := app.makeRequest(http.MethodPost, path, payload)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -72,12 +76,14 @@ func TestAuth_AllEndpoints(t *testing.T) {
 	})
 
 	t.Run("Dummy Login", func(t *testing.T) {
+		const path = "/dummyLogin"
+
 		var userToken, adminToken string
 
 		userPayload := map[string]interface{}{"role": "user"}
 		adminPayload := map[string]interface{}{"role": "admin"}
 
-		resp, err := app.doRequest("POST", "/dummyLogin", userPayload)
+		resp, err := app.makeRequest(http.MethodPost, path, userPayload)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -90,7 +96,7 @@ func TestAuth_AllEndpoints(t *testing.T) {
 		userToken = token["token"].(string)
 		assert.NotEmpty(t, userToken)
 
-		resp, err = app.doRequest("POST", "/dummyLogin", adminPayload)
+		resp, err = app.makeRequest(http.MethodPost, "/dummyLogin", adminPayload)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -184,7 +190,7 @@ func TestAuth_ValidateAndConflicts(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				resp, err := app.doRequest("POST", path, tt.payload)
+				resp, err := app.makeRequest(http.MethodPost, path, tt.payload)
 				require.NoError(t, err)
 
 				defer func() { _ = resp.Body.Close() }()
@@ -231,7 +237,7 @@ func TestAuth_ValidateAndConflicts(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				resp, err := app.doRequest("POST", path, tt.payload)
+				resp, err := app.makeRequest(http.MethodPost, path, tt.payload)
 				require.NoError(t, err)
 
 				defer func() { _ = resp.Body.Close() }()
@@ -266,7 +272,7 @@ func TestAuth_ValidateAndConflicts(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				resp, err := app.doRequest("POST", path, tt.payload)
+				resp, err := app.makeRequest(http.MethodPost, path, tt.payload)
 				require.NoError(t, err)
 
 				defer func() { _ = resp.Body.Close() }()

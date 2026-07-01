@@ -43,6 +43,7 @@ type testApp struct {
 	pg         *testhelpers.PostgresContainer
 	dbClient   *pkgpostgres.Client
 	cfg        *config.TestConfig
+	userToken  *string
 	adminToken *string
 }
 
@@ -204,7 +205,7 @@ func (a *testApp) cleanData(t *testing.T, ctx context.Context) {
 	require.NoError(t, err, "failed to re-seed data")
 }
 
-func (a *testApp) doRequest(method, path string, body interface{}) (*http.Response, error) {
+func (a *testApp) makeRequest(method, path string, body interface{}) (*http.Response, error) {
 	var buf bytes.Buffer
 	if body != nil {
 		if err := json.NewEncoder(&buf).Encode(body); err != nil {
@@ -221,7 +222,7 @@ func (a *testApp) doRequest(method, path string, body interface{}) (*http.Respon
 	return a.client.Do(req)
 }
 
-func (a *testApp) doRequestAuth(method, path string, body interface{}, token string) (*http.Response, error) {
+func (a *testApp) makeRequestAuth(method, path string, body interface{}, token string) (*http.Response, error) {
 	var buf bytes.Buffer
 	if body != nil {
 		_ = json.NewEncoder(&buf).Encode(body)
@@ -234,19 +235,11 @@ func (a *testApp) doRequestAuth(method, path string, body interface{}, token str
 	return a.client.Do(req)
 }
 
-func (a *testApp) getAdminToken(t *testing.T) string {
-	if a.adminToken != nil {
-		return *a.adminToken
-	}
+func (a *testApp) getToken(t *testing.T, role string) string {
+	availableRoles := [2]string{"user", "admin"}
+	require.Contains(t, availableRoles, role, "this role is not supported")
 
-	resp, err := a.doRequest(
-		"POST",
-		"/api/v1/admin/auth",
-		map[string]interface{}{
-			"login":    "test",
-			"password": "test123",
-		},
-	)
+	resp, err := a.makeRequest(http.MethodPost, "/dummyLogin", map[string]interface{}{"role": role})
 	require.NoError(t, err)
 	defer func() { _ = resp.Body.Close() }()
 
@@ -261,6 +254,32 @@ func (a *testApp) getAdminToken(t *testing.T) string {
 	token, ok := body["token"].(string)
 	require.True(t, ok)
 
+	return token
+}
+
+// Helper for e2e tests.
+// Returns the user jwt token if it's available.
+// Otherwise, make request to the "/dummyLogin" endpoint to claim it.
+func (a *testApp) getUserToken(t *testing.T) string {
+	if a.userToken != nil {
+		return *a.userToken
+	}
+
+	token := a.getToken(t, "user")
+	a.userToken = &token
+
+	return token
+}
+
+// Helper for e2e tests.
+// Returns the admin jwt token if it's available.
+// Otherwise, make request to the "/dummyLogin" endpoint to claim it.
+func (a *testApp) getAdminToken(t *testing.T) string {
+	if a.adminToken != nil {
+		return *a.adminToken
+	}
+
+	token := a.getToken(t, "admin")
 	a.adminToken = &token
 
 	return token
@@ -299,7 +318,7 @@ func (a *testApp) createUser(t *testing.T, email, password, role *string) string
 		"role":     userRole,
 	}
 
-	resp, err := a.doRequest("POST", path, payload)
+	resp, err := a.makeRequest(http.MethodPost, path, payload)
 	require.NoError(t, err)
 
 	var user map[string]map[string]interface{}
@@ -316,13 +335,13 @@ func (a *testApp) createUser(t *testing.T, email, password, role *string) string
 
 func (a *testApp) deleteLocation(t *testing.T, slug string) {
 	path := fmt.Sprintf("/api/v1/admin/locations/%s", slug)
-	resp, err := a.doRequestAuth("DELETE", path, nil, a.getAdminToken(t))
+	resp, err := a.makeRequestAuth("DELETE", path, nil, a.getAdminToken(t))
 	require.NoError(t, err)
 	_ = resp.Body.Close()
 }
 
 func (a *testApp) deactivateLocation(t *testing.T, slug string) {
-	resp, err := a.doRequestAuth(
+	resp, err := a.makeRequestAuth(
 		"PATCH",
 		fmt.Sprintf("/api/v1/admin/locations/%s", slug),
 		map[string]interface{}{"is_active": false},
@@ -353,7 +372,7 @@ func (a *testApp) createItem(t *testing.T, payload map[string]interface{}) strin
 		}
 	}
 
-	resp, err := a.doRequestAuth("POST", path, payload, a.getAdminToken(t))
+	resp, err := a.makeRequestAuth(http.MethodPost, path, payload, a.getAdminToken(t))
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -371,7 +390,7 @@ func (a *testApp) createItem(t *testing.T, payload map[string]interface{}) strin
 }
 
 func (a *testApp) deleteItem(t *testing.T, itemID string) {
-	resp, err := a.doRequestAuth(
+	resp, err := a.makeRequestAuth(
 		"DELETE",
 		fmt.Sprintf("/api/v1/admin/items/%s", itemID),
 		nil,

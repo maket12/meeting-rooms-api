@@ -3,7 +3,7 @@ package http
 import (
 	"backend/internal/infrastructure/jwt"
 	"context"
-	"fmt"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -79,25 +79,31 @@ func (r *Router) InitRoutes(log *slog.Logger) http.Handler {
 	return handler
 }
 
+func (r *Router) writeJSONError(w http.ResponseWriter, message string, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+
+	errResp := map[string]string{
+		"error": message,
+	}
+	_ = json.NewEncoder(w).Encode(errResp)
+}
+
 // --- Middlewares ---
 
 func (r *Router) withAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		authHeader := req.Header.Get("Authorization")
-		if authHeader == "" {
-			http.Error(w, "unauthorized: missing token", http.StatusUnauthorized)
+		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+			r.writeJSONError(w, "missing auth header", http.StatusUnauthorized)
 			return
 		}
 
-		parts := strings.Fields(authHeader)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			http.Error(w, "unauthorized: invalid auth format", http.StatusUnauthorized)
-			return
-		}
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-		userID, role, err := r.jwtGen.Validate(parts[1])
+		userID, role, err := r.jwtGen.Validate(tokenString)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("unauthorized: %v", err), http.StatusUnauthorized)
+			r.writeJSONError(w, "invalid or expired token", http.StatusUnauthorized)
 			return
 		}
 
@@ -112,7 +118,7 @@ func (r *Router) withRole(requiredRole string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		role, ok := req.Context().Value(RoleKey).(string)
 		if !ok || role != requiredRole {
-			http.Error(w, "forbidden: insufficient permissions", http.StatusForbidden)
+			r.writeJSONError(w, "insufficient permissions", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, req)
@@ -136,7 +142,7 @@ func (r *Router) withRecovery(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				http.Error(w, "internal server error", http.StatusInternalServerError)
+				r.writeJSONError(w, "internal server error", http.StatusInternalServerError)
 			}
 		}()
 		next.ServeHTTP(w, req)
