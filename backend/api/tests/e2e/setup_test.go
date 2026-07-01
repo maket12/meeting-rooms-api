@@ -358,6 +358,23 @@ func (a *testApp) createRoom(t *testing.T) string {
 	return id
 }
 
+// Helper for e2e tests.
+// Creates the new schedule with default values for specified room.
+// Make sure to create the room in advance before calling this method.
+func (a *testApp) createSchedule(t *testing.T, roomID string) {
+	path := fmt.Sprintf("/rooms/%s/schedule/create", roomID)
+	payload := map[string]interface{}{
+		"days_of_week": []int{1, 2, 3, 4, 5, 6, 7},
+		"start_time":   "8:30",
+		"end_time":     "9:30",
+	}
+
+	resp, err := a.makeRequestAuth(http.MethodPost, path, payload, a.getAdminToken(t))
+	require.NoError(t, err)
+
+	_ = resp.Body.Close()
+}
+
 func (a *testApp) deleteItem(t *testing.T, itemID string) {
 	resp, err := a.makeRequestAuth(
 		"DELETE",

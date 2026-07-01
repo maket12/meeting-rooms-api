@@ -37,9 +37,10 @@ func (h *SlotHandler) ListSlots(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = time.Parse(time.RFC3339, dateStr) // Validation of date
+	_, err = time.Parse(time.DateOnly, dateStr) // Validation of date
 	if err != nil {
 		h.handleError(w, r, pkgerrs.ErrInvalidDate, "date is invalid")
+		return
 	}
 
 	req := httpdto.ListSlotsRequest{

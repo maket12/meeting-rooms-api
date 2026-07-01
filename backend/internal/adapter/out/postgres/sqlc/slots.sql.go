@@ -11,11 +11,36 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createSlotsBatch = `-- name: CreateSlotsBatch :exec
+INSERT INTO slots (
+    id,
+    room_id,
+    start_time,
+    end_time
+)
+SELECT
+    unnest($1::uuid[]),
+    unnest($2::uuid[]),
+    unnest($3::timestamptz[]),
+    unnest($4::timestamptz[])
+ON CONFLICT (id) DO NOTHING
+`
+
 type CreateSlotsBatchParams struct {
-	ID        pgtype.UUID
-	RoomID    pgtype.UUID
-	StartTime pgtype.Timestamptz
-	EndTime   pgtype.Timestamptz
+	Ids        []pgtype.UUID
+	RoomIds    []pgtype.UUID
+	StartTimes []pgtype.Timestamptz
+	EndTimes   []pgtype.Timestamptz
+}
+
+func (q *Queries) CreateSlotsBatch(ctx context.Context, db DBTX, arg CreateSlotsBatchParams) error {
+	_, err := db.Exec(ctx, createSlotsBatch,
+		arg.Ids,
+		arg.RoomIds,
+		arg.StartTimes,
+		arg.EndTimes,
+	)
+	return err
 }
 
 const getFreeSlotsByRoomAndDate = `-- name: GetFreeSlotsByRoomAndDate :many

@@ -1,15 +1,16 @@
--- name: CreateSlotsBatch :copyfrom
+-- name: CreateSlotsBatch :exec
 INSERT INTO slots (
     id,
     room_id,
     start_time,
     end_time
-) VALUES (
-    @id,
-    @room_id,
-    @start_time,
-    @end_time
-);
+)
+SELECT
+    unnest(@ids::uuid[]),
+    unnest(@room_ids::uuid[]),
+    unnest(@start_times::timestamptz[]),
+    unnest(@end_times::timestamptz[])
+ON CONFLICT (id) DO NOTHING;
 
 -- name: GetSlotByID :one
 SELECT

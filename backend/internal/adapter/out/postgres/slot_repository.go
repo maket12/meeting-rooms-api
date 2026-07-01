@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"backend/internal/adapter/out/postgres/mapper"
-	sqlc2 "backend/internal/adapter/out/postgres/sqlc"
+	"backend/internal/adapter/out/postgres/sqlc"
 	"backend/internal/domain/model"
 	pkgerrs "backend/pkg/errs"
 	pkgpostgres "backend/pkg/postgres"
@@ -18,7 +18,7 @@ import (
 )
 
 type SlotRepository struct {
-	q      *sqlc2.Queries
+	q      *sqlc.Queries
 	pool   *pgxpool.Pool
 	getter *trmpgx.CtxGetter
 }
@@ -28,7 +28,7 @@ func NewSlotRepository(
 	getter *trmpgx.CtxGetter,
 ) *SlotRepository {
 	return &SlotRepository{
-		q:      sqlc2.New(),
+		q:      sqlc.New(),
 		pool:   pgClient.Pool,
 		getter: getter,
 	}
@@ -37,7 +37,7 @@ func NewSlotRepository(
 func (r *SlotRepository) CreateBatch(ctx context.Context, slots []*model.Slot) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 	params := mapper.MapSlotsToSQLCCreateBatch(slots)
-	if _, err := r.q.CreateSlotsBatch(ctx, db, params); err != nil {
+	if err := r.q.CreateSlotsBatch(ctx, db, params); err != nil {
 		return err
 	}
 	return nil
@@ -68,7 +68,7 @@ func (r *SlotRepository) ListFree(ctx context.Context, roomID uuid.UUID, date ti
 	rawSlots, err := r.q.GetFreeSlotsByRoomAndDate(
 		ctx,
 		db,
-		sqlc2.GetFreeSlotsByRoomAndDateParams{
+		sqlc.GetFreeSlotsByRoomAndDateParams{
 			RoomID: pgtype.UUID{
 				Bytes: roomID,
 				Valid: true,

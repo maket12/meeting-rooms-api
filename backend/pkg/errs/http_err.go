@@ -6,7 +6,7 @@ var (
 	ErrInvalidJSON       = errors.New("invalid json")
 	ErrInvalidIdentifier = errors.New("invalid identifier format")
 	ErrInvalidUserID     = errors.New("invalid user id")
-	ErrInvalidDate       = errors.New("date is empty or invalid")
+	ErrInvalidDate       = errors.New("invalid input: date is empty or invalid")
 )
 
 type OutErr struct {

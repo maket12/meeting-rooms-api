@@ -1,40 +1,34 @@
 package mapper
 
 import (
-	sqlc2 "backend/internal/adapter/out/postgres/sqlc"
+	"backend/internal/adapter/out/postgres/sqlc"
 	"backend/internal/domain/model"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func MapSlotsToSQLCCreateBatch(slots []*model.Slot) []sqlc2.CreateSlotsBatchParams {
-	mapped := make([]sqlc2.CreateSlotsBatchParams, len(slots))
-	for i := range mapped {
-		mapped[i] = sqlc2.CreateSlotsBatchParams{
-			ID: pgtype.UUID{
-				Bytes: slots[i].ID(),
-				Valid: true,
-			},
-			RoomID: pgtype.UUID{
-				Bytes: slots[i].RoomID(),
-				Valid: true,
-			},
-			StartTime: pgtype.Timestamptz{
-				Time:             slots[i].Start(),
-				InfinityModifier: 0,
-				Valid:            true,
-			},
-			EndTime: pgtype.Timestamptz{
-				Time:             slots[i].End(),
-				InfinityModifier: 0,
-				Valid:            true,
-			},
-		}
+func MapSlotsToSQLCCreateBatch(slots []*model.Slot) sqlc.CreateSlotsBatchParams {
+	ids := make([]pgtype.UUID, len(slots))
+	roomIDs := make([]pgtype.UUID, len(slots))
+	startTimes := make([]pgtype.Timestamptz, len(slots))
+	endTimes := make([]pgtype.Timestamptz, len(slots))
+
+	for i, s := range slots {
+		ids[i] = pgtype.UUID{Bytes: s.ID(), Valid: true}
+		roomIDs[i] = pgtype.UUID{Bytes: s.RoomID(), Valid: true}
+		startTimes[i] = pgtype.Timestamptz{Time: s.Start(), Valid: true}
+		endTimes[i] = pgtype.Timestamptz{Time: s.End(), Valid: true}
 	}
-	return mapped
+
+	return sqlc.CreateSlotsBatchParams{
+		Ids:        ids,
+		RoomIds:    roomIDs,
+		StartTimes: startTimes,
+		EndTimes:   endTimes,
+	}
 }
 
-func MapSQLCToSlot(rawSlot sqlc2.Slot) *model.Slot {
+func MapSQLCToSlot(rawSlot sqlc.Slot) *model.Slot {
 	return model.RestoreSlot(
 		rawSlot.ID.Bytes,
 		rawSlot.RoomID.Bytes,
@@ -43,7 +37,7 @@ func MapSQLCToSlot(rawSlot sqlc2.Slot) *model.Slot {
 	)
 }
 
-func MapSQLCToSlots(rawSlots []sqlc2.Slot) []*model.Slot {
+func MapSQLCToSlots(rawSlots []sqlc.Slot) []*model.Slot {
 	slots := make([]*model.Slot, len(rawSlots))
 	for i := range slots {
 		slots[i] = MapSQLCToSlot(rawSlots[i])

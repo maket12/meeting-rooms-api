@@ -244,6 +244,15 @@ components:
           example:
             error: "room not found"
 
+    ScheduleNotFoundError:
+      description: Расписание не найдено
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "schedule not found"
+
     UserAlreadyExistsError:
       description: Пользователь с таким email уже существует
       content:
@@ -566,7 +575,7 @@ paths:
                   summary: Битый JSON
                   value:
                     error: "invalid json"
-                incorrect_id:
+                incorrect_room_id:
                   summary: Некорректный идентификатор
                   value:
                     error: "invalid identifier format"
@@ -629,77 +638,37 @@ paths:
                     items:
                       $ref: '#/components/schemas/Slot'
         '400':
-          description: Неверный запрос (отсутствует или некорректен параметр date)
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: "#/components/responses/RoomNotFoundError"
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  # ──────────────────────────────────────────────────────────────
-  # Bookings
-  # ──────────────────────────────────────────────────────────────
-
-  /bookings/create:
-    post:
-      tags: [Bookings]
-      summary: Создать бронь на слот (только user). Опционально — запросить ссылку на конференцию.
-      description: >
-        Доступно только роли user. Администратор не может создавать брони (403).
-        `userId` берётся из JWT-токена, а не из тела запроса.
-        Если временной слот находится в прошлом (start < now), возвращается 400 (INVALID_REQUEST).
-      security: [{ BearerAuth: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [slotId]
-              properties:
-                slotId:
-                  type: string
-                  format: uuid
-                createConferenceLink:
-                  type: boolean
-                  default: false
-      responses:
-        '201':
-          description: Бронь создана
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  booking:
-                    $ref: '#/components/schemas/Booking'
-        '400':
           description: Неверный запрос
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                incorrect_room_id:
+                  summary: Некорректный идентификатор
+                  value:
+                    error: "invalid identifier format"
+                incorrect_date:
+                  summary: Некорректная дата
+                  value:
+                    error: "invalid input"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: "#/components/responses/ForbiddenError"
         '404':
-          description: Слот не найден
+          description: Ресурс не найден
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-        '409':
-          description: Слот уже занят
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example:
-                error:
-                  code: SLOT_ALREADY_BOOKED
-                  message: slot is already booked
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                room_not_found:
+                  summary: Комната не найдена
+                  value:
+                    error: "room not found"
+                schedule_not_found:
+                  summary: Расписание не найдено
+                  value:
+                    error: "schedule not found"
         '500':
           $ref: '#/components/responses/InternalError'
 
