@@ -333,60 +333,29 @@ func (a *testApp) createUser(t *testing.T, email, password, role *string) string
 	return id
 }
 
-func (a *testApp) deleteLocation(t *testing.T, slug string) {
-	path := fmt.Sprintf("/api/v1/admin/locations/%s", slug)
-	resp, err := a.makeRequestAuth("DELETE", path, nil, a.getAdminToken(t))
-	require.NoError(t, err)
-	_ = resp.Body.Close()
-}
-
-func (a *testApp) deactivateLocation(t *testing.T, slug string) {
-	resp, err := a.makeRequestAuth(
-		"PATCH",
-		fmt.Sprintf("/api/v1/admin/locations/%s", slug),
-		map[string]interface{}{"is_active": false},
-		a.getAdminToken(t),
-	)
-	require.NoError(t, err)
-	_ = resp.Body.Close()
-}
-
 // Helper for e2e tests.
-// Creates the new item with default values.
-// Returns external id of the created item.
-func (a *testApp) createItem(t *testing.T, payload map[string]interface{}) string {
-	const path = "/api/v1/admin/items"
+// Creates the new room with default values.
+// Returns external id of the created room.
+func (a *testApp) createRoom(t *testing.T) string {
+	const path = "/rooms/create"
 
-	if payload == nil {
-		payload = map[string]interface{}{
-			"name":        "Сэндвич с курицей",
-			"description": "Сэндвич с курицей и соусом тар-тар",
-			"category":    "breakfast",
-			"photo_url":   "https://photos-storage/exsa129csa7690/chicken_sandwich.png",
-			"nutrition": map[string]interface{}{
-				"calories": 200,
-				"proteins": 23.6,
-				"fats":     1.9,
-				"carbs":    0.3,
-			},
-		}
-	}
+	payload := map[string]interface{}{"name": "B122", "capacity": 50}
 
 	resp, err := a.makeRequestAuth(http.MethodPost, path, payload, a.getAdminToken(t))
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
 
-	var item map[string]map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&item)
+	var room map[string]map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&room)
 	require.NoError(t, err)
 
-	idStr := item["item"]["id"].(string)
+	id := room["room"]["id"].(string)
 
-	_, err = uuid.Parse(idStr)
+	_, err = uuid.Parse(id)
 	require.NoError(t, err)
 
-	return idStr
+	return id
 }
 
 func (a *testApp) deleteItem(t *testing.T, itemID string) {

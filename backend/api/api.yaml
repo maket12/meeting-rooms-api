@@ -179,6 +179,25 @@ components:
           type: integer
           description: Общее количество записей
 
+    CreateScheduleRequest:
+      type: object
+      properties:
+        days_of_week:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+            maximum: 7
+          description: "1=Пн .. 7=Вс, дни доступности. Каждое значение должно быть в диапазоне 1–7."
+        start_time:
+          type: string
+          pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+          description: Время начала (HH:MM) в рамках дня. Интерпретируется как UTC.
+        end_time:
+          type: string
+          pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+          description: Время окончания (HH:MM) в рамках дня. Интерпретируется как UTC.
+
   responses:
     UnauthorizedError:
       description: Ошибка авторизации
@@ -216,6 +235,15 @@ components:
           example:
             error: "user not found"
 
+    RoomNotFoundError:
+      description: Комната не найдена
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "room not found"
+
     UserAlreadyExistsError:
       description: Пользователь с таким email уже существует
       content:
@@ -224,6 +252,15 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             error: "user with given email already exists"
+
+    ScheduleAlreadyExistsError:
+      description: Расписание для данной комнаты уже существует
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "schedule for this room already exists"
 
     InternalError:
       description: Внутренняя ошибка сервера
@@ -507,10 +544,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Schedule'
+              $ref: '#/components/schemas/CreateScheduleRequest'
       responses:
         '201':
-          description: Расписание сохранено
+          description: Расписание создано
           content:
             application/json:
               schema:
@@ -519,28 +556,40 @@ paths:
                   schedule:
                     $ref: '#/components/schemas/Schedule'
         '400':
-          description: Неверный запрос (в т.ч. недопустимые значения daysOfWeek)
+          description: Неверный запрос
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_id:
+                  summary: Некорректный идентификатор
+                  value:
+                    error: "invalid identifier format"
+                incorrect_days_of_week:
+                  summary: Некорректное значение days_of_week
+                  value:
+                    error: "invalid input"
+                incorrect_start_time:
+                  summary: Некорректные часы работы (начало)
+                  value:
+                    error: "invalid input"
+                incorrect_end_time:
+                  summary: Некорректные часы работы (конец)
+                  value:
+                    error: "invalid input"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: "#/components/responses/ForbiddenError"
         '404':
-          description: Переговорка не найдена
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: "#/components/responses/RoomNotFoundError"
         '409':
-          description: Расписание для переговорки уже создано, изменение не допускается
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example:
-                error:
-                  code: SCHEDULE_EXISTS
-                  message: schedule for this room already exists and cannot be changed
+          $ref: '#/components/responses/ScheduleAlreadyExistsError'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -587,10 +636,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
-          description: Переговорка не найдена
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: "#/components/responses/RoomNotFoundError"
         '500':
           $ref: '#/components/responses/InternalError'
 

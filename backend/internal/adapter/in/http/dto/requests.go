@@ -22,22 +22,22 @@ type CreateRoomRequest struct {
 }
 
 type CreateScheduleRequest struct {
-	RoomID     string `param:"roomId"`
-	DaysOfWeek []int  `json:"daysOfWeek"`
-	StartTime  string `json:"startTime"`
-	EndTime    string `json:"endTime"`
+	RoomID     string `param:"room_id"`
+	DaysOfWeek []int  `json:"days_of_week"`
+	StartTime  string `json:"start_time"`
+	EndTime    string `json:"end_time"`
 }
 
 type ListSlotsRequest struct {
-	RoomID string `param:"roomId"`
+	RoomID string `param:"room_id"`
 	Date   string `query:"date"`
 }
 
 type CreateBookingRequest struct {
-	SlotID               string `json:"slotId"`
-	CreateConferenceLink bool   `json:"createConferenceLink"`
+	SlotID               string `json:"slot_id"`
+	CreateConferenceLink bool   `json:"create_conference_link"`
 }
 
 type CancelBookingRequest struct {
-	BookingID string `param:"bookingId"`
+	BookingID string `param:"booking_id"`
 }

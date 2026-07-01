@@ -5,7 +5,7 @@ import (
 	"backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/model"
-	port2 "backend/internal/domain/port"
+	"backend/internal/domain/port"
 	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
@@ -15,16 +15,16 @@ import (
 
 type CreateScheduleUC struct {
 	trManager trm.Manager
-	room      port2.RoomRepository
-	schedule  port2.ScheduleRepository
-	slot      port2.SlotRepository
+	room      port.RoomRepository
+	schedule  port.ScheduleRepository
+	slot      port.SlotRepository
 }
 
 func NewCreateScheduleUC(
 	trManager trm.Manager,
-	room port2.RoomRepository,
-	schedule port2.ScheduleRepository,
-	slot port2.SlotRepository,
+	room port.RoomRepository,
+	schedule port.ScheduleRepository,
+	slot port.SlotRepository,
 ) *CreateScheduleUC {
 	return &CreateScheduleUC{
 		trManager: trManager,
