@@ -51,4 +51,5 @@ var (
 
 	ErrUserAlreadyExists     = errors.New("user with given email already exists")
 	ErrScheduleAlreadyExists = errors.New("schedule for this room already exists")
+	ErrBookingAlreadyExists  = errors.New("booking for this slot already exists")
 )

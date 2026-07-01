@@ -253,6 +253,15 @@ components:
           example:
             error: "schedule not found"
 
+    SlotNotFoundError:
+      description: Слот не найден
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "slot not found"
+
     UserAlreadyExistsError:
       description: Пользователь с таким email уже существует
       content:
@@ -669,6 +678,77 @@ paths:
                   summary: Расписание не найдено
                   value:
                     error: "schedule not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ──────────────────────────────────────────────────────────────
+  # Bookings
+  # ──────────────────────────────────────────────────────────────
+
+  /bookings/create:
+    post:
+      tags: [ Bookings ]
+      summary: Создать бронь на слот (только user). Опционально — запросить ссылку на конференцию.
+      description: >
+        Доступно только роли user. Администратор не может создавать брони (403).
+        `userId` берётся из JWT-токена, а не из тела запроса.
+        Если временной слот находится в прошлом (start < now), возвращается 400 (INVALID_REQUEST).
+      security: [ { BearerAuth: [ ] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ slotId ]
+              properties:
+                slot_id:
+                  type: string
+                  format: uuid
+                create_conference_link:
+                  type: boolean
+                  default: false
+      responses:
+        '201':
+          description: Бронь создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  booking:
+                    $ref: '#/components/schemas/Booking'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                incorrect_room_id:
+                  summary: Некорректный идентификатор
+                  value:
+                    error: "invalid identifier format"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: "#/components/responses/ForbiddenError"
+        '404':
+          $ref: "#/components/responses/SlotNotFoundError"
+        '409':
+          description: Слот уже занят или находится в прошлом
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                booking_already_exists:
+                  summary: Бронь не может быть создана, так как слот уже занят
+                  value:
+                    error: "booking for this slot already exists"
+                slot_cannot_be_booked:
+                  summary: Слот находится в прошлом и не может быть забронирован
+                  value:
+                    error: "specified slot is in the past"
         '500':
           $ref: '#/components/responses/InternalError'
 

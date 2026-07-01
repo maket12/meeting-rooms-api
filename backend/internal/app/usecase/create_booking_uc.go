@@ -2,10 +2,10 @@ package usecase
 
 import (
 	"backend/internal/app/dto"
-	"backend/internal/app/errs"
+	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/model"
-	port2 "backend/internal/domain/port"
+	"backend/internal/domain/port"
 	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
@@ -16,16 +16,16 @@ import (
 
 type CreateBookingUC struct {
 	trManager  trm.Manager
-	slot       port2.SlotRepository
-	booking    port2.BookingRepository
-	conference port2.ConferenceService
+	slot       port.SlotRepository
+	booking    port.BookingRepository
+	conference port.ConferenceService
 }
 
 func NewCreateBookingUC(
 	trManager trm.Manager,
-	slot port2.SlotRepository,
-	booking port2.BookingRepository,
-	conference port2.ConferenceService,
+	slot port.SlotRepository,
+	booking port.BookingRepository,
+	conference port.ConferenceService,
 ) *CreateBookingUC {
 	return &CreateBookingUC{
 		trManager:  trManager,
@@ -42,20 +42,20 @@ func (uc *CreateBookingUC) Execute(ctx context.Context, in dto.CreateBookingInpu
 		slot, getErr := uc.slot.Get(ctx, in.SlotID)
 		if getErr != nil {
 			if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {
-				return errs.ErrSlotNotFound
+				return ucerrs.ErrSlotNotFound
 			}
-			return errs.Wrap(errs.ErrGetSlotDB, getErr)
+			return ucerrs.Wrap(ucerrs.ErrGetSlotDB, getErr)
 		}
 
 		if slot.Start().Before(time.Now().UTC()) {
-			return errs.ErrCannotCreateBooking
+			return ucerrs.ErrCannotCreateBooking
 		}
 
 		var conferenceLink *string
 		if in.CreateConferenceLink {
 			link, createErr := uc.conference.CreateMeeting(ctx)
 			if createErr != nil {
-				return errs.Wrap(errs.ErrCreateMeeting, createErr)
+				return ucerrs.Wrap(ucerrs.ErrCreateMeeting, createErr)
 			}
 			conferenceLink = &link
 		}
@@ -66,12 +66,15 @@ func (uc *CreateBookingUC) Execute(ctx context.Context, in dto.CreateBookingInpu
 			conferenceLink,
 		)
 		if createErr != nil {
-			return errs.Wrap(errs.ErrInvalidInput, createErr)
+			return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 		}
 
 		createdBooking, createErr := uc.booking.Create(ctx, booking)
 		if createErr != nil {
-			return errs.Wrap(errs.ErrCreateBookingDB, createErr)
+			if errors.Is(createErr, pkgerrs.ErrObjectAlreadyExists) {
+				return ucerrs.ErrBookingAlreadyExists
+			}
+			return ucerrs.Wrap(ucerrs.ErrCreateBookingDB, createErr)
 		}
 
 		out = mapper.MapDomainToCreateBookingDTO(createdBooking)

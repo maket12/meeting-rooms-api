@@ -104,7 +104,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 
 	case errors.Is(err, errs.ErrCannotCreateBooking),
 		errors.Is(err, errs.ErrUserAlreadyExists),
-		errors.Is(err, errs.ErrScheduleAlreadyExists):
+		errors.Is(err, errs.ErrScheduleAlreadyExists),
+		errors.Is(err, errs.ErrBookingAlreadyExists):
 		return pkgerrs.NewOutError(
 			http.StatusConflict,
 			err.Error(),

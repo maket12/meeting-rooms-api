@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	dto2 "backend/internal/app/dto"
+	"backend/internal/app/dto"
 	"backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/port"
@@ -16,7 +16,7 @@ func NewListBookingsUC(bookingRepo port.BookingRepository) *ListBookingsUC {
 	return &ListBookingsUC{booking: bookingRepo}
 }
 
-func (uc *ListBookingsUC) Execute(ctx context.Context, input dto2.ListBookingsInput) (dto2.ListBookingsOutput, error) {
+func (uc *ListBookingsUC) Execute(ctx context.Context, input dto.ListBookingsInput) (dto.ListBookingsOutput, error) {
 	limit := int32(input.PageSize)
 	if limit <= 0 {
 		limit = 10
@@ -31,14 +31,14 @@ func (uc *ListBookingsUC) Execute(ctx context.Context, input dto2.ListBookingsIn
 
 	bookings, total, err := uc.booking.ListAll(ctx, limit, offset)
 	if err != nil {
-		return dto2.ListBookingsOutput{}, errs.Wrap(
+		return dto.ListBookingsOutput{}, errs.Wrap(
 			errs.ErrListBookingsDB, err,
 		)
 	}
 
-	output := dto2.ListBookingsOutput{
+	output := dto.ListBookingsOutput{
 		Bookings: mapper.MapDomainToListBookings(bookings).Bookings,
-		Pagination: dto2.Pagination{
+		Pagination: dto.Pagination{
 			Page:     page,
 			PageSize: int(limit),
 			Total:    int(total),
