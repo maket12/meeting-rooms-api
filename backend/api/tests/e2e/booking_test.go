@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -241,6 +242,122 @@ func TestBooking_ValidateAndConflicts(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				resp, err := app.makeRequestAuth(http.MethodPost, path, tt.payload, tt.token)
+				require.NoError(t, err)
+
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("List My Bookings - Bad Cases", func(t *testing.T) {
+		const path = "/bookings/my"
+
+		type testCase struct {
+			name           string
+			token          string
+			expectedStatus int
+			expectedError  string
+		}
+
+		var tests = []testCase{
+			{
+				name:           "Unauthorized - Invalid Token",
+				token:          "invalid-token",
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid or expired token",
+			},
+			{
+				name:           "Forbidden - Insufficient Permissions",
+				token:          adminToken,
+				expectedStatus: http.StatusForbidden,
+				expectedError:  "insufficient permissions",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				resp, err := app.makeRequestAuth(http.MethodGet, path, nil, tt.token)
+				require.NoError(t, err)
+
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("List All Bookings - Bad Cases", func(t *testing.T) {
+		type testCase struct {
+			name           string
+			token          string
+			page           int
+			pageSize       int
+			expectedStatus int
+			expectedError  string
+		}
+
+		var tests = []testCase{
+			{
+				name:           "Bad Request - Invalid Page",
+				token:          adminToken,
+				page:           -10,
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+			{
+				name:           "Bad Request - Invalid Page Size",
+				token:          adminToken,
+				page:           1,
+				pageSize:       -10,
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+			{
+				name:           "Unauthorized - Invalid Token",
+				token:          "invalid-token",
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid or expired token",
+			},
+			{
+				name:           "Forbidden - Insufficient Permissions",
+				token:          userToken,
+				expectedStatus: http.StatusForbidden,
+				expectedError:  "insufficient permissions",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				var builder strings.Builder
+
+				builder.Grow(40)
+				builder.WriteString("/bookings/list")
+
+				if tt.page != 0 {
+					builder.WriteString(fmt.Sprintf(
+						"?page=%d", tt.page,
+					))
+				}
+				if tt.pageSize != 0 {
+					builder.WriteString(fmt.Sprintf(
+						"&page_size=%d", tt.pageSize,
+					))
+				}
+
+				resp, err := app.makeRequestAuth(
+					http.MethodGet, builder.String(),
+					nil, tt.token,
+				)
 				require.NoError(t, err)
 
 				defer func() { _ = resp.Body.Close() }()

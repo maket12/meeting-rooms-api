@@ -119,7 +119,7 @@ func (h *BookingHandler) ListAllBookings(w http.ResponseWriter, r *http.Request)
 	var page, pageSize int
 
 	pageStr := r.URL.Query().Get("page")
-	pageSizeStr := r.URL.Query().Get("pageSize")
+	pageSizeStr := r.URL.Query().Get("page_size")
 
 	if len(pageStr) != 0 {
 		pageInt, err := strconv.Atoi(pageStr)
