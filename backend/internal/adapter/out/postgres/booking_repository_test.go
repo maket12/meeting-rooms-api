@@ -38,7 +38,7 @@ func (s *BookingRepoSuite) SetupSuite() {
 func (s *BookingRepoSuite) SetupTest() {
 	err := s.pgContainer.TruncateTables(s.ctx, "bookings", "slots", "rooms", "users")
 	s.Require().NoError(err)
-	
+
 	s.seedData()
 }
 
@@ -47,7 +47,7 @@ func (s *BookingRepoSuite) seedData() {
 	roomRepo := adapterpostgres.NewRoomRepository(s.dbClient, trmpgx.DefaultCtxGetter)
 	slotRepo := adapterpostgres.NewSlotRepository(s.dbClient, trmpgx.DefaultCtxGetter)
 
-	testUser, _ := model.NewUser("email", "hash", model.RoleUser)
+	testUser, _ := model.NewUser("email", "hash", model.RoleUser.String())
 	testRoom, _ := model.NewRoom("№147", nil, nil)
 	testSlot, _ := model.NewSlot(testRoom.ID(), time.Now().Add(time.Hour).UTC())
 

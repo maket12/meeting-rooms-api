@@ -77,7 +77,7 @@ func (s *UserRepoSuite) TestCreate_UniqueViolation() {
 	newUser, _ := model.NewUser(
 		s.testUser.Email(),
 		s.testUser.PasswordHash(),
-		s.testUser.Role(),
+		s.testUser.Role().String(),
 	)
 	user, err = s.repo.Create(s.ctx, newUser)
 
