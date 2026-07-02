@@ -445,14 +445,3 @@ func (a *testApp) createBooking(t *testing.T, slotID string) string {
 
 	return id
 }
-
-func (a *testApp) deleteItem(t *testing.T, itemID string) {
-	resp, err := a.makeRequestAuth(
-		"DELETE",
-		fmt.Sprintf("/api/v1/admin/items/%s", itemID),
-		nil,
-		a.getAdminToken(t),
-	)
-	require.NoError(t, err)
-	_ = resp.Body.Close()
-}
