@@ -1,12 +1,12 @@
 package mapper
 
 import (
-	dto2 "backend/internal/app/dto"
-	model2 "backend/internal/domain/model"
+	"backend/internal/app/dto"
+	"backend/internal/domain/model"
 )
 
-func MapDomainToUserDTO(user *model2.User) dto2.User {
-	return dto2.User{
+func MapDomainToUserDTO(user *model.User) dto.User {
+	return dto.User{
 		ID:        user.ID(),
 		Email:     user.Email(),
 		Role:      user.Role().String(),
@@ -14,12 +14,12 @@ func MapDomainToUserDTO(user *model2.User) dto2.User {
 	}
 }
 
-func MapDomainToRegisterDTO(user *model2.User) dto2.RegisterOutput {
-	return dto2.RegisterOutput{User: MapDomainToUserDTO(user)}
+func MapDomainToRegisterDTO(user *model.User) dto.RegisterOutput {
+	return dto.RegisterOutput{User: MapDomainToUserDTO(user)}
 }
 
-func MapDomainToRoomDTO(room *model2.Room) dto2.Room {
-	return dto2.Room{
+func MapDomainToRoomDTO(room *model.Room) dto.Room {
+	return dto.Room{
 		ID:          room.ID(),
 		Name:        room.Name(),
 		Description: room.Description(),
@@ -28,23 +28,23 @@ func MapDomainToRoomDTO(room *model2.Room) dto2.Room {
 	}
 }
 
-func MapDomainToCreateRoomDTO(room *model2.Room) dto2.CreateRoomOutput {
-	return dto2.CreateRoomOutput{
+func MapDomainToCreateRoomDTO(room *model.Room) dto.CreateRoomOutput {
+	return dto.CreateRoomOutput{
 		Room: MapDomainToRoomDTO(room),
 	}
 }
 
-func MapDomainToListRoomsDTO(rooms []*model2.Room) dto2.ListRoomsOutput {
-	mapped := make([]dto2.Room, len(rooms))
+func MapDomainToListRoomsDTO(rooms []*model.Room) dto.ListRoomsOutput {
+	mapped := make([]dto.Room, len(rooms))
 	for i := range mapped {
 		mapped[i] = MapDomainToRoomDTO(rooms[i])
 	}
 
-	return dto2.ListRoomsOutput{Rooms: mapped}
+	return dto.ListRoomsOutput{Rooms: mapped}
 }
 
-func MapDomainToScheduleDTO(schedule *model2.Schedule) dto2.Schedule {
-	return dto2.Schedule{
+func MapDomainToScheduleDTO(schedule *model.Schedule) dto.Schedule {
+	return dto.Schedule{
 		ID:         schedule.ID(),
 		RoomID:     schedule.RoomID(),
 		DaysOfWeek: schedule.DaysOfWeek(),
@@ -53,14 +53,14 @@ func MapDomainToScheduleDTO(schedule *model2.Schedule) dto2.Schedule {
 	}
 }
 
-func MapDomainToCreateScheduleDTO(schedule *model2.Schedule) dto2.CreateScheduleOutput {
-	return dto2.CreateScheduleOutput{
+func MapDomainToCreateScheduleDTO(schedule *model.Schedule) dto.CreateScheduleOutput {
+	return dto.CreateScheduleOutput{
 		Schedule: MapDomainToScheduleDTO(schedule),
 	}
 }
 
-func MapDomainToSlotDTO(slot *model2.Slot) dto2.Slot {
-	return dto2.Slot{
+func MapDomainToSlotDTO(slot *model.Slot) dto.Slot {
+	return dto.Slot{
 		ID:     slot.ID(),
 		RoomID: slot.RoomID(),
 		Start:  slot.Start(),
@@ -68,17 +68,17 @@ func MapDomainToSlotDTO(slot *model2.Slot) dto2.Slot {
 	}
 }
 
-func MapDomainToListSlotsDTO(slots []*model2.Slot) dto2.ListSlotsOutput {
-	mapped := make([]dto2.Slot, len(slots))
+func MapDomainToListSlotsDTO(slots []*model.Slot) dto.ListSlotsOutput {
+	mapped := make([]dto.Slot, len(slots))
 	for i := range mapped {
 		mapped[i] = MapDomainToSlotDTO(slots[i])
 	}
 
-	return dto2.ListSlotsOutput{Slots: mapped}
+	return dto.ListSlotsOutput{Slots: mapped}
 }
 
-func MapDomainToBookingDTO(booking *model2.Booking) dto2.Booking {
-	return dto2.Booking{
+func MapDomainToBookingDTO(booking *model.Booking) dto.Booking {
+	return dto.Booking{
 		ID:             booking.ID(),
 		SlotID:         booking.SlotID(),
 		UserID:         booking.UserID(),
@@ -88,22 +88,22 @@ func MapDomainToBookingDTO(booking *model2.Booking) dto2.Booking {
 	}
 }
 
-func MapDomainToCreateBookingDTO(booking *model2.Booking) dto2.CreateBookingOutput {
-	return dto2.CreateBookingOutput{Booking: MapDomainToBookingDTO(booking)}
+func MapDomainToCreateBookingDTO(booking *model.Booking) dto.CreateBookingOutput {
+	return dto.CreateBookingOutput{Booking: MapDomainToBookingDTO(booking)}
 }
 
-func MapDomainToListBookings(bookings []*model2.Booking) dto2.ListBookingsOutput {
-	mapped := make([]dto2.Booking, len(bookings))
+func MapDomainToListBookings(bookings []*model.Booking) dto.ListBookingsOutput {
+	mapped := make([]dto.Booking, len(bookings))
 	for i := range mapped {
 		mapped[i] = MapDomainToBookingDTO(bookings[i])
 	}
-	return dto2.ListBookingsOutput{Bookings: mapped}
+	return dto.ListBookingsOutput{Bookings: mapped}
 }
 
-func MapDomainToListMyBookings(bookings []*model2.Booking) dto2.ListMyBookingsOutput {
-	mapped := make([]dto2.Booking, len(bookings))
+func MapDomainToListMyBookings(bookings []*model.Booking) dto.ListMyBookingsOutput {
+	mapped := make([]dto.Booking, len(bookings))
 	for i := range mapped {
 		mapped[i] = MapDomainToBookingDTO(bookings[i])
 	}
-	return dto2.ListMyBookingsOutput{Bookings: mapped}
+	return dto.ListMyBookingsOutput{Bookings: mapped}
 }

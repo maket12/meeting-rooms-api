@@ -31,18 +31,18 @@ func TestMapSlotsToSQLCCreateBatch(t *testing.T) {
 	}
 
 	mapped := mapper.MapSlotsToSQLCCreateBatch(slots)
-	require.Len(t, mapped, len(slots))
+	require.Len(t, mapped.Ids, len(slots))
 
-	for i := range mapped {
-		require.True(t, mapped[i].ID.Valid)
-		require.True(t, mapped[i].RoomID.Valid)
-		require.True(t, mapped[i].StartTime.Valid)
-		require.True(t, mapped[i].EndTime.Valid)
+	for i := range len(mapped.Ids) {
+		require.True(t, mapped.Ids[i].Valid)
+		require.True(t, mapped.RoomIds[i].Valid)
+		require.True(t, mapped.StartTimes[i].Valid)
+		require.True(t, mapped.EndTimes[i].Valid)
 
-		assert.Equal(t, [16]byte(slots[i].ID()), mapped[i].ID.Bytes)
-		assert.Equal(t, [16]byte(slots[i].RoomID()), mapped[i].RoomID.Bytes)
-		assert.Equal(t, slots[i].Start(), mapped[i].StartTime.Time)
-		assert.Equal(t, slots[i].End(), mapped[i].EndTime.Time)
+		assert.Equal(t, [16]byte(slots[i].ID()), mapped.Ids[i].Bytes)
+		assert.Equal(t, [16]byte(slots[i].RoomID()), mapped.RoomIds[i].Bytes)
+		assert.Equal(t, slots[i].Start(), mapped.StartTimes[i].Time)
+		assert.Equal(t, slots[i].End(), mapped.EndTimes[i].Time)
 	}
 }
 

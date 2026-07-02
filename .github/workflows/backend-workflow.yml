@@ -18,7 +18,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.25.0'
+          go-version: '1.26.2'
           cache: true
           cache-dependency-path: backend/go.sum
 
@@ -40,7 +40,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.25.0'
+          go-version: '1.26.2'
           cache: true
           cache-dependency-path: backend/go.sum
 
@@ -48,10 +48,10 @@ jobs:
         working-directory: ./backend
         run: go test -v -short -coverprofile=unit.out -covermode=atomic ./internal/...
 
-#      - name: Run Integration Tests
-#        working-directory: ./backend
-#        run: go test -v -tags=integration -coverprofile=integration.out ./internal/adapter/...
+      - name: Run Integration Tests
+        working-directory: ./backend
+        run: go test -v -tags=integration -coverprofile=integration.out ./internal/adapter/...
 
-#      - name: Run E2E Tests
-#        working-directory: ./backend/api/tests/e2e
-#        run: go test -v -tags=e2e
+      - name: Run E2E Tests
+        working-directory: ./backend/api/tests/e2e
+        run: go test -v -tags=e2e

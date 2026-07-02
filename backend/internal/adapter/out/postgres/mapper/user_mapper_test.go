@@ -17,7 +17,7 @@ func TestMapUserToSQLCCreate(t *testing.T) {
 	user, _ := model.NewUser(
 		"amazing-email@avito.ru",
 		"new-pass",
-		model.RoleUser,
+		model.RoleUser.String(),
 	)
 
 	mapped := mapper.MapUserToSQLCCreate(user)
