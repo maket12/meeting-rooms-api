@@ -23,7 +23,7 @@ components:
 
   parameters:
     RoomIdPath:
-      name: roomId
+      name: id
       in: path
       required: true
       schema:
@@ -31,7 +31,7 @@ components:
         format: uuid
       description: Идентификатор переговорки
     BookingIdPath:
-      name: bookingId
+      name: id
       in: path
       required: true
       schema:
@@ -199,6 +199,15 @@ components:
           description: Время окончания (HH:MM) в рамках дня. Интерпретируется как UTC.
 
   responses:
+    InvalidIdentifierError:
+      description: Некорректный идентификатор
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "invalid identifier format"
+
     UnauthorizedError:
       description: Ошибка авторизации
       content:
@@ -261,6 +270,15 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             error: "slot not found"
+
+    BookingNotFoundError:
+      description: Бронь не найдена
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "booking not found"
 
     UserAlreadyExistsError:
       description: Пользователь с таким email уже существует
@@ -545,7 +563,7 @@ paths:
   # Schedules
   # ──────────────────────────────────────────────────────────────
 
-  /rooms/{roomId}/schedule/create:
+  /rooms/{id}/schedule/create:
     post:
       tags: [Schedules]
       summary: Создать расписание переговорки (только admin, только один раз). Длительность слота 30 мин. После создания расписание изменить нельзя.
@@ -615,7 +633,7 @@ paths:
   # Slots
   # ──────────────────────────────────────────────────────────────
 
-  /rooms/{roomId}/slots/list:
+  /rooms/{id}/slots/list:
     get:
       tags: [Slots]
       summary: Список доступных для бронирования слотов по переговорке и дате (admin и user). Наиболее нагруженный эндпоинт.
@@ -692,7 +710,7 @@ paths:
       description: >
         Доступно только роли user. Администратор не может создавать брони (403).
         `userId` берётся из JWT-токена, а не из тела запроса.
-        Если временной слот находится в прошлом (start < now), возвращается 400 (INVALID_REQUEST).
+        Если временной слот находится в прошлом (start < now), возвращается 409 (CONFLICT).
       security: [ { BearerAuth: [ ] } ]
       requestBody:
         required: true
@@ -719,16 +737,7 @@ paths:
                   booking:
                     $ref: '#/components/schemas/Booking'
         '400':
-          description: Неверный запрос
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                incorrect_room_id:
-                  summary: Некорректный идентификатор
-                  value:
-                    error: "invalid identifier format"
+          $ref: '#/components/responses/InvalidIdentifierError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -772,12 +781,12 @@ paths:
             default: 1
         - name: pageSize
           in: query
-          description: Количество записей на странице. По умолчанию 20, максимум 100.
+          description: Количество записей на странице. По умолчанию 10, максимум 100.
           schema:
             type: integer
             minimum: 1
             maximum: 100
-            default: 20
+            default: 10
       responses:
         '200':
           description: Список всех броней
@@ -793,10 +802,20 @@ paths:
                   pagination:
                     $ref: '#/components/schemas/Pagination'
         '400':
-          description: Неверный запрос (некорректные параметры пагинации)
+          description: Неверный запрос
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                incorrect_page:
+                  summary: Некорректное значение page
+                  value:
+                    error: "invalid input"
+                incorrect_page_size:
+                  summary: Некорректное значение page size
+                  value:
+                    error: "invalid input"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -832,7 +851,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /bookings/{bookingId}/cancel:
+  /bookings/{id}/cancel:
     post:
       tags: [Bookings]
       summary: Отменить бронь (только своя бронь, только user)
@@ -855,14 +874,13 @@ paths:
                 properties:
                   booking:
                     $ref: '#/components/schemas/Booking'
+        '400':
+          $ref: '#/components/responses/InvalidIdentifierError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: "#/components/responses/ForbiddenError"
         '404':
-          description: Бронь не найдена
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+          $ref: "#/components/responses/BookingNotFoundError"
         '500':
           $ref: '#/components/responses/InternalError'

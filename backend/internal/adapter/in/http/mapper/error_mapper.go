@@ -25,7 +25,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 		errors.Is(err, pkgerrs.ErrInvalidIdentifier),
 		errors.Is(err, pkgerrs.ErrValueIsInvalid),
 		errors.Is(err, pkgerrs.ErrInvalidUserID),
-		errors.Is(err, pkgerrs.ErrInvalidDate):
+		errors.Is(err, pkgerrs.ErrInvalidDate),
+		errors.Is(err, pkgerrs.ErrInvalidPage):
 		return pkgerrs.NewOutError(
 			http.StatusBadRequest,
 			err.Error(),

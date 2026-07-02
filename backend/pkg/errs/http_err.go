@@ -7,6 +7,7 @@ var (
 	ErrInvalidIdentifier = errors.New("invalid identifier format")
 	ErrInvalidUserID     = errors.New("invalid user id")
 	ErrInvalidDate       = errors.New("invalid input: date is empty or invalid")
+	ErrInvalidPage       = errors.New("invalid input: page/page_size is not integer")
 )
 
 type OutErr struct {

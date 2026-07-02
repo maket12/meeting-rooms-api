@@ -2,28 +2,42 @@ package usecase
 
 import (
 	"backend/internal/app/dto"
-	"backend/internal/app/errs"
+	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/port"
 	"context"
+	"errors"
 )
 
-type ListBookingsUC struct {
-	booking port.BookingRepository
-}
+type ListBookingsUC struct{ booking port.BookingRepository }
 
 func NewListBookingsUC(bookingRepo port.BookingRepository) *ListBookingsUC {
 	return &ListBookingsUC{booking: bookingRepo}
 }
 
 func (uc *ListBookingsUC) Execute(ctx context.Context, input dto.ListBookingsInput) (dto.ListBookingsOutput, error) {
+	if input.Page < 0 {
+		return dto.ListBookingsOutput{}, ucerrs.Wrap(
+			ucerrs.ErrInvalidInput, errors.New("page can't be negative"),
+		)
+	}
+
+	if input.PageSize < 0 {
+		return dto.ListBookingsOutput{}, ucerrs.Wrap(
+			ucerrs.ErrInvalidInput, errors.New("page size can't be negative"),
+		)
+	}
+
 	limit := int32(input.PageSize)
-	if limit <= 0 {
+	if limit == 0 {
 		limit = 10
+	}
+	if limit > 100 {
+		limit = 100
 	}
 
 	page := input.Page
-	if page <= 0 {
+	if page == 0 {
 		page = 1
 	}
 
@@ -31,8 +45,8 @@ func (uc *ListBookingsUC) Execute(ctx context.Context, input dto.ListBookingsInp
 
 	bookings, total, err := uc.booking.ListAll(ctx, limit, offset)
 	if err != nil {
-		return dto.ListBookingsOutput{}, errs.Wrap(
-			errs.ErrListBookingsDB, err,
+		return dto.ListBookingsOutput{}, ucerrs.Wrap(
+			ucerrs.ErrListBookingsDB, err,
 		)
 	}
 

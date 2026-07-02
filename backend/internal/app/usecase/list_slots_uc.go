@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"backend/internal/app/dto"
-	"backend/internal/app/errs"
+	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/model"
 	"backend/internal/domain/port"
@@ -38,10 +38,10 @@ func (uc *ListSlotsUC) Execute(ctx context.Context, in dto.ListSlotsInput) (dto.
 	_, err := uc.room.Get(ctx, in.RoomID)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
-			return dto.ListSlotsOutput{}, errs.ErrRoomNotFound
+			return dto.ListSlotsOutput{}, ucerrs.ErrRoomNotFound
 		}
-		return dto.ListSlotsOutput{}, errs.Wrap(
-			errs.ErrGetRoomDB, err,
+		return dto.ListSlotsOutput{}, ucerrs.Wrap(
+			ucerrs.ErrGetRoomDB, err,
 		)
 	}
 
@@ -53,16 +53,16 @@ func (uc *ListSlotsUC) Execute(ctx context.Context, in dto.ListSlotsInput) (dto.
 	err = uc.trManager.Do(ctx, func(txCtx context.Context) error {
 		slots, listErr = uc.slot.ListFree(ctx, in.RoomID, in.Date)
 		if listErr != nil {
-			return errs.Wrap(errs.ErrListSlotsDB, listErr)
+			return ucerrs.Wrap(ucerrs.ErrListSlotsDB, listErr)
 		}
 
 		if len(slots) == 0 {
 			sch, getErr := uc.schedule.Get(ctx, in.RoomID)
 			if getErr != nil {
 				if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {
-					return errs.ErrScheduleNotFound
+					return ucerrs.ErrScheduleNotFound
 				}
-				return errs.Wrap(errs.ErrGetScheduleDB, getErr)
+				return ucerrs.Wrap(ucerrs.ErrGetScheduleDB, getErr)
 			}
 
 			var worksToday bool
@@ -81,11 +81,11 @@ func (uc *ListSlotsUC) Execute(ctx context.Context, in dto.ListSlotsInput) (dto.
 			if worksToday {
 				slots, createErr = sch.CreateSlots()
 				if createErr != nil {
-					return errs.Wrap(errs.ErrInvalidInput, createErr)
+					return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 				}
 
 				if createErr = uc.slot.CreateBatch(ctx, slots); createErr != nil {
-					return errs.Wrap(errs.ErrCreateSlotsDB, createErr)
+					return ucerrs.Wrap(ucerrs.ErrCreateSlotsDB, createErr)
 				}
 			}
 		}

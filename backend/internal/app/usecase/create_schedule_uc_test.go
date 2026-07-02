@@ -4,8 +4,8 @@ import (
 	"backend/internal/app/dto"
 	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/usecase"
-	model2 "backend/internal/domain/model"
-	mocks2 "backend/internal/domain/port/mocks"
+	"backend/internal/domain/model"
+	"backend/internal/domain/port/mocks"
 	pkgerrs "backend/pkg/errs"
 	"context"
 	"testing"
@@ -28,9 +28,9 @@ func (s *trmStub) Do(ctx context.Context, f func(ctx context.Context) error) err
 
 func TestCreateScheduleUC_Execute(t *testing.T) {
 	type adapter struct {
-		room     *mocks2.MockRoomRepository
-		schedule *mocks2.MockScheduleRepository
-		slot     *mocks2.MockSlotRepository
+		room     *mocks.MockRoomRepository
+		schedule *mocks.MockScheduleRepository
+		slot     *mocks.MockSlotRepository
 	}
 
 	roomID := uuid.New()
@@ -51,9 +51,9 @@ func TestCreateScheduleUC_Execute(t *testing.T) {
 			name:  "Success",
 			input: input,
 			mockBehaviour: func(a adapter) {
-				a.room.EXPECT().Get(mock.Anything, roomID).Return(&model2.Room{}, nil)
+				a.room.EXPECT().Get(mock.Anything, roomID).Return(&model.Room{}, nil)
 				a.schedule.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Schedule")).
-					RunAndReturn(func(ctx context.Context, s *model2.Schedule) (*model2.Schedule, error) {
+					RunAndReturn(func(ctx context.Context, s *model.Schedule) (*model.Schedule, error) {
 						return s, nil
 					})
 				a.slot.EXPECT().CreateBatch(mock.Anything, mock.Anything).Return(nil)
@@ -72,7 +72,7 @@ func TestCreateScheduleUC_Execute(t *testing.T) {
 			name:  "Failure - Schedule Already Exists",
 			input: input,
 			mockBehaviour: func(a adapter) {
-				a.room.EXPECT().Get(mock.Anything, roomID).Return(&model2.Room{}, nil)
+				a.room.EXPECT().Get(mock.Anything, roomID).Return(&model.Room{}, nil)
 				a.schedule.EXPECT().Create(mock.Anything, mock.Anything).Return(nil, pkgerrs.ErrObjectAlreadyExists)
 			},
 			expectErr: ucerrs.ErrScheduleAlreadyExists,
@@ -82,9 +82,9 @@ func TestCreateScheduleUC_Execute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a := adapter{
-				room:     mocks2.NewMockRoomRepository(t),
-				schedule: mocks2.NewMockScheduleRepository(t),
-				slot:     mocks2.NewMockSlotRepository(t),
+				room:     mocks.NewMockRoomRepository(t),
+				schedule: mocks.NewMockScheduleRepository(t),
+				slot:     mocks.NewMockSlotRepository(t),
 			}
 			tt.mockBehaviour(a)
 

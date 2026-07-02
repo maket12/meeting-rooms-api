@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"backend/internal/app/dto"
-	"backend/internal/app/errs"
+	ucerrs "backend/internal/app/errs"
 	"backend/internal/domain/port"
 	pkgerrs "backend/pkg/errs"
 	"context"
@@ -42,8 +42,8 @@ func (uc *DummyLoginUC) Execute(ctx context.Context, in dto.DummyLoginInput) (dt
 	case "user":
 		uID = uc.userID
 	default:
-		return dto.DummyLoginOutput{}, errs.Wrap(
-			errs.ErrInvalidInput, errors.New("invalid role"),
+		return dto.DummyLoginOutput{}, ucerrs.Wrap(
+			ucerrs.ErrInvalidInput, errors.New("invalid role"),
 		)
 	}
 
@@ -51,18 +51,18 @@ func (uc *DummyLoginUC) Execute(ctx context.Context, in dto.DummyLoginInput) (dt
 	user, err := uc.user.GetByID(ctx, uID)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
-			return dto.DummyLoginOutput{}, errs.ErrUserNotFound
+			return dto.DummyLoginOutput{}, ucerrs.ErrUserNotFound
 		}
-		return dto.DummyLoginOutput{}, errs.Wrap(
-			errs.ErrGetUserByIDDB, err,
+		return dto.DummyLoginOutput{}, ucerrs.Wrap(
+			ucerrs.ErrGetUserByIDDB, err,
 		)
 	}
 
 	// Generate the token for the gotten user
 	token, err := uc.jwtGen.Generate(user.ID(), user.Role().String())
 	if err != nil {
-		return dto.DummyLoginOutput{}, errs.Wrap(
-			errs.ErrGenerateToken, err,
+		return dto.DummyLoginOutput{}, ucerrs.Wrap(
+			ucerrs.ErrGenerateToken, err,
 		)
 	}
 

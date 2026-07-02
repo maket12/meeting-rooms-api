@@ -120,7 +120,7 @@ func TestAuth_ValidateAndConflicts(t *testing.T) {
 	)
 
 	app := setupE2E(t)
-	_ = app.createUser(
+	_, _ = app.createUser(
 		t, utils.VPtr(testEmail),
 		utils.VPtr(testPass), nil,
 	)

@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"backend/internal/app/dto"
-	"backend/internal/app/errs"
+	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/model"
 	"backend/internal/domain/port"
@@ -30,16 +30,16 @@ func (uc *RegisterUC) Execute(ctx context.Context, in dto.RegisterInput) (dto.Re
 	// Hashing the password
 	hashedPassword, err := uc.password.Hash(in.Password)
 	if err != nil {
-		return dto.RegisterOutput{}, errs.Wrap(
-			errs.ErrHashPassword, err,
+		return dto.RegisterOutput{}, ucerrs.Wrap(
+			ucerrs.ErrHashPassword, err,
 		)
 	}
 
 	// Creating rich-models with validation
 	user, err := model.NewUser(in.Email, hashedPassword, in.Role)
 	if err != nil {
-		return dto.RegisterOutput{}, errs.Wrap(
-			errs.ErrInvalidInput, err,
+		return dto.RegisterOutput{}, ucerrs.Wrap(
+			ucerrs.ErrInvalidInput, err,
 		)
 	}
 
@@ -47,10 +47,10 @@ func (uc *RegisterUC) Execute(ctx context.Context, in dto.RegisterInput) (dto.Re
 	user, err = uc.user.Create(ctx, user)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectAlreadyExists) {
-			return dto.RegisterOutput{}, errs.ErrUserAlreadyExists
+			return dto.RegisterOutput{}, ucerrs.ErrUserAlreadyExists
 		}
-		return dto.RegisterOutput{}, errs.Wrap(
-			errs.ErrCreateUserDB, err,
+		return dto.RegisterOutput{}, ucerrs.Wrap(
+			ucerrs.ErrCreateUserDB, err,
 		)
 	}
 

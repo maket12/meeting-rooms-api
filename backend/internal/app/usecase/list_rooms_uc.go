@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"backend/internal/app/dto"
-	"backend/internal/app/errs"
+	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/port"
 	"context"
@@ -19,7 +19,7 @@ func NewListRoomsUC(room port.RoomRepository) *ListRoomsUC {
 func (uc *ListRoomsUC) Execute(ctx context.Context) (dto.ListRoomsOutput, error) {
 	rooms, err := uc.room.List(ctx)
 	if err != nil {
-		return dto.ListRoomsOutput{}, errs.Wrap(errs.ErrListRoomsDB, err)
+		return dto.ListRoomsOutput{}, ucerrs.Wrap(ucerrs.ErrListRoomsDB, err)
 	}
 
 	return mapper.MapDomainToListRoomsDTO(rooms), nil

@@ -28,7 +28,7 @@ func NewSlotHandler(
 }
 
 func (h *SlotHandler) ListSlots(w http.ResponseWriter, r *http.Request) {
-	roomIdStr := r.PathValue("roomId")
+	roomIdStr := r.PathValue("id")
 	dateStr := r.URL.Query().Get("date")
 
 	_, err := uuid.Parse(roomIdStr) // Validation of room id

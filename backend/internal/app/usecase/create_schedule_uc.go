@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"backend/internal/app/dto"
-	"backend/internal/app/errs"
+	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/model"
 	"backend/internal/domain/port"
@@ -41,9 +41,9 @@ func (uc *CreateScheduleUC) Execute(ctx context.Context, in dto.CreateScheduleIn
 		_, getErr := uc.room.Get(ctx, in.RoomID)
 		if getErr != nil {
 			if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {
-				return errs.ErrRoomNotFound
+				return ucerrs.ErrRoomNotFound
 			}
-			return errs.Wrap(errs.ErrGetRoomDB, getErr)
+			return ucerrs.Wrap(ucerrs.ErrGetRoomDB, getErr)
 		}
 
 		// Create schedule
@@ -54,25 +54,25 @@ func (uc *CreateScheduleUC) Execute(ctx context.Context, in dto.CreateScheduleIn
 			in.EndTime,
 		)
 		if createErr != nil {
-			return errs.Wrap(errs.ErrInvalidInput, createErr)
+			return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 		}
 
 		createdSchedule, createErr := uc.schedule.Create(ctx, schedule)
 		if createErr != nil {
 			if errors.Is(createErr, pkgerrs.ErrObjectAlreadyExists) {
-				return errs.ErrScheduleAlreadyExists
+				return ucerrs.ErrScheduleAlreadyExists
 			}
-			return errs.Wrap(errs.ErrCreateScheduleDB, createErr)
+			return ucerrs.Wrap(ucerrs.ErrCreateScheduleDB, createErr)
 		}
 
 		// Create slots
 		slots, createErr := schedule.CreateSlots()
 		if createErr != nil {
-			return errs.Wrap(errs.ErrInvalidInput, createErr)
+			return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 		}
 
 		if createErr = uc.slot.CreateBatch(ctx, slots); createErr != nil {
-			return errs.Wrap(errs.ErrCreateSlotsDB, createErr)
+			return ucerrs.Wrap(ucerrs.ErrCreateSlotsDB, createErr)
 		}
 
 		out = mapper.MapDomainToCreateScheduleDTO(createdSchedule)

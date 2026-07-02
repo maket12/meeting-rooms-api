@@ -28,7 +28,7 @@ func NewScheduleHandler(
 }
 
 func (h *ScheduleHandler) CreateSchedule(w http.ResponseWriter, r *http.Request) {
-	roomIdStr := r.PathValue("roomId")
+	roomIdStr := r.PathValue("id")
 	_, err := uuid.Parse(roomIdStr) // Validation of room id
 	if err != nil {
 		h.handleError(w, r, pkgerrs.ErrInvalidIdentifier, "failed to parse uuid")

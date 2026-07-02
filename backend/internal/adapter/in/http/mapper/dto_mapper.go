@@ -188,7 +188,7 @@ func MapPaginationToResponse(pagination appdto.Pagination) httpdto.PaginationRes
 	}
 }
 
-func MapListToResponse(output appdto.ListBookingsOutput) httpdto.ListBookingsResponse {
+func MapListAllBookingsToResponse(output appdto.ListBookingsOutput) httpdto.ListBookingsResponse {
 	return httpdto.ListBookingsResponse{
 		Bookings:   MapBookingsToResponse(output.Bookings),
 		Pagination: MapPaginationToResponse(output.Pagination),

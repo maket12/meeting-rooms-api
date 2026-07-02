@@ -14,6 +14,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"backend/cmd/app/config"
 	adapterhttp "backend/internal/adapter/in/http"
@@ -241,9 +242,9 @@ func (a *testApp) getToken(t *testing.T, role string) string {
 
 	resp, err := a.makeRequest(http.MethodPost, "/dummyLogin", map[string]interface{}{"role": role})
 	require.NoError(t, err)
-	defer func() { _ = resp.Body.Close() }()
-
 	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	defer func() { _ = resp.Body.Close() }()
 
 	var body map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&body)
@@ -287,10 +288,13 @@ func (a *testApp) getAdminToken(t *testing.T) string {
 
 // Helper for e2e tests.
 // Creates the new user with specified parameters.  **
-// Returns the id of the created user.
+// Returns the id of the created user and its jwt token.
 // ** If parameters are not specified, then it uses default values instead.
-func (a *testApp) createUser(t *testing.T, email, password, role *string) string {
-	const path = "/register"
+func (a *testApp) createUser(t *testing.T, email, password, role *string) (string, string) {
+	const (
+		registerPath = "/register"
+		loginPath    = "/login"
+	)
 
 	var userEmail, userPass, userRole string
 
@@ -312,14 +316,17 @@ func (a *testApp) createUser(t *testing.T, email, password, role *string) string
 		userRole = "admin"
 	}
 
+	// Make request on "/register" endpoint to create a user firstly
 	payload := map[string]interface{}{
 		"email":    userEmail,
 		"password": userPass,
 		"role":     userRole,
 	}
 
-	resp, err := a.makeRequest(http.MethodPost, path, payload)
+	resp, err := a.makeRequest(http.MethodPost, registerPath, payload)
 	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
 
 	var user map[string]map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&user)
@@ -328,9 +335,23 @@ func (a *testApp) createUser(t *testing.T, email, password, role *string) string
 	id := user["user"]["id"].(string)
 	assert.NotEmpty(t, id)
 
-	_ = resp.Body.Close()
+	// Now make request on "/login" endpoint to get access token
+	payload = map[string]interface{}{"email": userEmail, "password": userPass}
 
-	return id
+	resp, err = a.makeRequest(http.MethodPost, loginPath, payload)
+	require.NoError(t, err)
+
+	var body map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&body)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, body["token"])
+
+	token, ok := body["token"].(string)
+	require.True(t, ok)
+	require.NotEmpty(t, token)
+
+	return id, token
 }
 
 // Helper for e2e tests.
@@ -373,6 +394,56 @@ func (a *testApp) createSchedule(t *testing.T, roomID string) {
 	require.NoError(t, err)
 
 	_ = resp.Body.Close()
+}
+
+// Helper for e2e tests.
+// Requests slots for specified room within next day trough "../slots/list" endpoint.
+// Make sure you created schedule for the room before to call this method.
+func (a *testApp) getSlots(t *testing.T, roomID string) []map[string]interface{} {
+	testDate := time.Now().Add(24 * time.Hour).Format(time.DateOnly)
+
+	path := fmt.Sprintf("/rooms/%s/slots/list?date=%s", roomID, testDate)
+
+	resp, err := a.makeRequestAuth(http.MethodGet, path, nil, a.getUserToken(t))
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	var slots map[string][]map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&slots)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, slots["slots"])
+
+	return slots["slots"]
+}
+
+// Helper for e2e tests.
+// Creates the new booking for specified slot.
+// Make sure to generate slots (e.g. create a schedule)
+// in advance before calling this method.
+// Returns id of created booking
+func (a *testApp) createBooking(t *testing.T, slotID string) string {
+	const path = "/bookings/create"
+
+	payload := map[string]interface{}{"slot_id": slotID, "create_conference_link": false}
+
+	resp, err := a.makeRequestAuth(http.MethodPost, path, payload, a.getUserToken(t))
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	var body map[string]map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	require.NoError(t, err)
+
+	id := body["booking"]["id"].(string)
+	require.NotEmpty(t, id)
+
+	_, err = uuid.Parse(id)
+	require.NoError(t, err)
+
+	return id
 }
 
 func (a *testApp) deleteItem(t *testing.T, itemID string) {

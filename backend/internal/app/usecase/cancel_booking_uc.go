@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"backend/internal/app/dto"
-	"backend/internal/app/errs"
+	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/mapper"
 	"backend/internal/domain/port"
 	pkgerrs "backend/pkg/errs"
@@ -10,9 +10,7 @@ import (
 	"errors"
 )
 
-type CancelBookingUC struct {
-	booking port.BookingRepository
-}
+type CancelBookingUC struct{ booking port.BookingRepository }
 
 func NewCancelBookingUC(booking port.BookingRepository) *CancelBookingUC {
 	return &CancelBookingUC{booking: booking}
@@ -22,21 +20,21 @@ func (uc *CancelBookingUC) Execute(ctx context.Context, in dto.CancelBookingInpu
 	booking, err := uc.booking.Get(ctx, in.BookingID)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
-			return dto.CancelBookingOutput{}, errs.ErrBookingNotFound
+			return dto.CancelBookingOutput{}, ucerrs.ErrBookingNotFound
 		}
-		return dto.CancelBookingOutput{}, errs.Wrap(
-			errs.ErrGetBookingDB, err,
+		return dto.CancelBookingOutput{}, ucerrs.Wrap(
+			ucerrs.ErrGetBookingDB, err,
 		)
 	}
 
 	if err = booking.Cancel(in.RequestorID); err != nil {
-		return dto.CancelBookingOutput{}, errs.ErrCannotCancelBooking
+		return dto.CancelBookingOutput{}, ucerrs.ErrCannotCancelBooking
 	}
 
 	err = uc.booking.UpdateStatus(ctx, booking.ID(), booking.Status())
 	if err != nil {
-		return dto.CancelBookingOutput{}, errs.Wrap(
-			errs.ErrUpdateBookingStatusDB, err,
+		return dto.CancelBookingOutput{}, ucerrs.Wrap(
+			ucerrs.ErrUpdateBookingStatusDB, err,
 		)
 	}
 

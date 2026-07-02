@@ -5,7 +5,7 @@ import (
 	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/usecase"
 	"backend/internal/domain/model"
-	mocks2 "backend/internal/domain/port/mocks"
+	"backend/internal/domain/port/mocks"
 	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
@@ -17,9 +17,9 @@ import (
 
 func TestLoginUC_Execute(t *testing.T) {
 	type adapter struct {
-		user     *mocks2.MockUserRepository
-		password *mocks2.MockPasswordHasher
-		token    *mocks2.MockTokenGenerator
+		user     *mocks.MockUserRepository
+		password *mocks.MockPasswordHasher
+		token    *mocks.MockTokenGenerator
 	}
 
 	type testCase struct {
@@ -100,9 +100,9 @@ func TestLoginUC_Execute(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			userRepo := mocks2.NewMockUserRepository(t)
-			passHasher := mocks2.NewMockPasswordHasher(t)
-			tokenGen := mocks2.NewMockTokenGenerator(t)
+			userRepo := mocks.NewMockUserRepository(t)
+			passHasher := mocks.NewMockPasswordHasher(t)
+			tokenGen := mocks.NewMockTokenGenerator(t)
 
 			tt.mockBehaviour(adapter{
 				user:     userRepo,

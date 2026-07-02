@@ -68,7 +68,7 @@ func (h *BookingHandler) CreateBooking(w http.ResponseWriter, r *http.Request) {
 
 	h.log.InfoContext(r.Context(), "created booking", slog.String("id", out.Booking.ID.String()))
 
-	h.respond(w, http.StatusCreated, mapper.MapBookingToResponse(out.Booking))
+	h.respond(w, http.StatusCreated, mapper.MapCreateBookingToResponse(out))
 }
 
 func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +78,7 @@ func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookingIDStr := r.PathValue("bookingId")
+	bookingIDStr := r.PathValue("id")
 	bookingID, err := uuid.Parse(bookingIDStr) // Validation of booking id
 	if err != nil {
 		h.handleError(w, r, pkgerrs.ErrInvalidIdentifier, "failed to parse uuid")
@@ -96,7 +96,7 @@ func (h *BookingHandler) CancelBooking(w http.ResponseWriter, r *http.Request) {
 
 	h.log.InfoContext(r.Context(), "cancelled booking", slog.String("id", bookingIDStr))
 
-	h.respond(w, http.StatusOK, mapper.MapBookingToResponse(out.Booking))
+	h.respond(w, http.StatusOK, mapper.MapCancelBookingToResponse(out))
 }
 
 func (h *BookingHandler) ListMyBookings(w http.ResponseWriter, r *http.Request) {
@@ -116,8 +116,28 @@ func (h *BookingHandler) ListMyBookings(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *BookingHandler) ListAllBookings(w http.ResponseWriter, r *http.Request) {
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	pageSize, _ := strconv.Atoi(r.URL.Query().Get("pageSize"))
+	var page, pageSize int
+
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("pageSize")
+
+	if len(pageStr) != 0 {
+		pageInt, err := strconv.Atoi(pageStr)
+		if err != nil {
+			h.handleError(w, r, pkgerrs.ErrInvalidPage, "invalid page value")
+			return
+		}
+		page = pageInt
+	}
+
+	if len(pageSizeStr) != 0 {
+		pageSizeInt, err := strconv.Atoi(pageSizeStr)
+		if err != nil {
+			h.handleError(w, r, pkgerrs.ErrInvalidPage, "invalid page size value")
+			return
+		}
+		pageSize = pageSizeInt
+	}
 
 	out, err := h.listBookingsUC.Execute(r.Context(), ucdto.ListBookingsInput{
 		Page:     page,
@@ -128,5 +148,5 @@ func (h *BookingHandler) ListAllBookings(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.respond(w, http.StatusOK, mapper.MapListToResponse(out))
+	h.respond(w, http.StatusOK, mapper.MapListAllBookingsToResponse(out))
 }
