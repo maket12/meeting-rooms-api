@@ -13,8 +13,6 @@ import (
 )
 
 func TestNewRoom(t *testing.T) {
-	t.Parallel()
-
 	type testCase struct {
 		name        string
 		roomName    string
@@ -72,7 +70,7 @@ func TestNewRoom(t *testing.T) {
 				assert.Equal(t, tt.roomName, room.Name())
 				assert.Equal(t, tt.description, room.Description())
 				assert.Equal(t, tt.capacity, room.Capacity())
-				assert.False(t, room.CreatedAt().Before(time.Now().UTC()))
+				assert.False(t, room.CreatedAt().After(time.Now().UTC().Add(1*time.Second)))
 			} else {
 				require.Error(t, err)
 				assert.ErrorIs(t, err, tt.expect)
