@@ -47,8 +47,8 @@ func (uc *ListSlotsUC) Execute(ctx context.Context, in dto.ListSlotsInput) (dto.
 	}
 
 	var (
-		slots   []*model.Slot
-		listErr error
+		slots              []*model.Slot
+		listErr, createErr error
 	)
 
 	err = uc.trManager.Do(ctx, func(txCtx context.Context) error {
@@ -66,20 +66,13 @@ func (uc *ListSlotsUC) Execute(ctx context.Context, in dto.ListSlotsInput) (dto.
 				return ucerrs.Wrap(ucerrs.ErrGetScheduleDB, getErr)
 			}
 
-			generatedSlots, createErr := sch.CreateSlots(utils.VPtr(in.Date))
+			slots, createErr = sch.CreateSlots(utils.VPtr(in.Date))
 			if createErr != nil {
 				return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 			}
 
-			if len(generatedSlots) > 0 {
-				if createErr = uc.slot.CreateBatch(ctx, generatedSlots); createErr != nil {
-					return ucerrs.Wrap(ucerrs.ErrCreateSlotsDB, createErr)
-				}
-
-				slots, listErr = uc.slot.ListFree(ctx, in.RoomID, in.Date)
-				if listErr != nil {
-					return ucerrs.Wrap(ucerrs.ErrListSlotsDB, listErr)
-				}
+			if createErr = uc.slot.CreateBatch(txCtx, slots); createErr != nil {
+				return ucerrs.Wrap(ucerrs.ErrCreateSlotsDB, createErr)
 			}
 		}
 

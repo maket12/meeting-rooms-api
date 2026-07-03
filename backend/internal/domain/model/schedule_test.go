@@ -243,13 +243,12 @@ func TestSchedule_CreateSlots_CurrentDay(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, slots)
+	require.NotEmpty(t, slots)
 
-	if len(slots) != 0 {
-		assert.True(t, slots[0].Start().Minute()%30 == 0)
-		assert.True(t, slots[0].End().Minute()%30 == 0)
-		assert.True(t, slots[len(slots)-1].Start().Minute()%30 == 0)
-		assert.True(t, slots[len(slots)-1].End().Minute()%30 == 0)
-	}
+	assert.True(t, slots[0].Start().Minute()%30 == 0)
+	assert.True(t, slots[0].End().Minute()%30 == 0)
+	assert.True(t, slots[len(slots)-1].Start().Minute()%30 == 0)
+	assert.True(t, slots[len(slots)-1].End().Minute()%30 == 0)
 }
 
 func TestSchedule_CreateSlots_Error(t *testing.T) {

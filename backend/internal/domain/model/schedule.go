@@ -184,15 +184,13 @@ func (s *Schedule) CreateSlots(date *time.Time) ([]*Slot, error) {
 	var err error
 	slots := make([]*Slot, 0)
 
-	var dateFrom time.Time
-	if date == nil {
-		dateFrom = time.Now().UTC()
-	} else {
+	dateFrom := time.Now().UTC()
+	if date != nil {
 		dateFrom = date.UTC()
 	}
 
 	// Round the time to not care about hours and minutes
-	from := time.Date(dateFrom.Year(), dateFrom.Month(), dateFrom.Day(), 0, 0, 0, 0, time.UTC)
+	from := dateFrom.Round(dayVal)
 	to := from.Add(genSlotsWithin)
 
 	for day := from; day.Before(to); day = day.Add(dayVal) {

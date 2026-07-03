@@ -109,10 +109,10 @@ func MapCreateScheduleToResponse(output appdto.CreateScheduleOutput) httpdto.Cre
 
 func MapRequestToListSlots(request httpdto.ListSlotsRequest) appdto.ListSlotsInput {
 	roomID, _ := uuid.Parse(request.RoomID)
-	date, _ := time.Parse(time.RFC3339, request.Date)
+	date, _ := time.Parse(time.DateOnly, request.Date)
 	return appdto.ListSlotsInput{
 		RoomID: roomID,
-		Date:   date,
+		Date:   date.UTC(),
 	}
 }
 
