@@ -1,10 +1,13 @@
-FROM golang:1.25-alpine AS builder
+FROM golang:1.26.2-alpine AS builder
 
 RUN apk add --no-cache git
 
 WORKDIR /app
 
 COPY go.mod go.sum ./
+
+ENV GOPROXY=https://proxy.golang.org,https://goproxy.io,https://mirror.yandex.ru/mirrors/go-proxy/,direct
+
 RUN go mod download
 
 COPY pkg ./pkg/

@@ -37,8 +37,8 @@ func NewCreateScheduleUC(
 func (uc *CreateScheduleUC) Execute(ctx context.Context, in dto.CreateScheduleInput) (dto.CreateScheduleOutput, error) {
 	var out dto.CreateScheduleOutput
 
-	err := uc.trManager.Do(ctx, func(ctx context.Context) error {
-		_, getErr := uc.room.Get(ctx, in.RoomID)
+	err := uc.trManager.Do(ctx, func(txCtx context.Context) error {
+		_, getErr := uc.room.Get(txCtx, in.RoomID)
 		if getErr != nil {
 			if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {
 				return ucerrs.ErrRoomNotFound
@@ -57,7 +57,7 @@ func (uc *CreateScheduleUC) Execute(ctx context.Context, in dto.CreateScheduleIn
 			return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 		}
 
-		createdSchedule, createErr := uc.schedule.Create(ctx, schedule)
+		createdSchedule, createErr := uc.schedule.Create(txCtx, schedule)
 		if createErr != nil {
 			if errors.Is(createErr, pkgerrs.ErrObjectAlreadyExists) {
 				return ucerrs.ErrScheduleAlreadyExists
@@ -66,12 +66,12 @@ func (uc *CreateScheduleUC) Execute(ctx context.Context, in dto.CreateScheduleIn
 		}
 
 		// Create slots
-		slots, createErr := schedule.CreateSlots()
+		slots, createErr := schedule.CreateSlots(nil)
 		if createErr != nil {
 			return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 		}
 
-		if createErr = uc.slot.CreateBatch(ctx, slots); createErr != nil {
+		if createErr = uc.slot.CreateBatch(txCtx, slots); createErr != nil {
 			return ucerrs.Wrap(ucerrs.ErrCreateSlotsDB, createErr)
 		}
 

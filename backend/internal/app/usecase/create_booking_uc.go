@@ -38,8 +38,8 @@ func NewCreateBookingUC(
 func (uc *CreateBookingUC) Execute(ctx context.Context, in dto.CreateBookingInput) (dto.CreateBookingOutput, error) {
 	var out dto.CreateBookingOutput
 
-	err := uc.trManager.Do(ctx, func(ctx context.Context) error {
-		slot, getErr := uc.slot.Get(ctx, in.SlotID)
+	err := uc.trManager.Do(ctx, func(txCtx context.Context) error {
+		slot, getErr := uc.slot.Get(txCtx, in.SlotID)
 		if getErr != nil {
 			if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {
 				return ucerrs.ErrSlotNotFound
@@ -53,7 +53,7 @@ func (uc *CreateBookingUC) Execute(ctx context.Context, in dto.CreateBookingInpu
 
 		var conferenceLink *string
 		if in.CreateConferenceLink {
-			link, createErr := uc.conference.CreateMeeting(ctx)
+			link, createErr := uc.conference.CreateMeeting(txCtx)
 			if createErr != nil {
 				return ucerrs.Wrap(ucerrs.ErrCreateMeeting, createErr)
 			}
@@ -69,7 +69,7 @@ func (uc *CreateBookingUC) Execute(ctx context.Context, in dto.CreateBookingInpu
 			return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 		}
 
-		createdBooking, createErr := uc.booking.Create(ctx, booking)
+		createdBooking, createErr := uc.booking.Create(txCtx, booking)
 		if createErr != nil {
 			if errors.Is(createErr, pkgerrs.ErrObjectAlreadyExists) {
 				return ucerrs.ErrBookingAlreadyExists

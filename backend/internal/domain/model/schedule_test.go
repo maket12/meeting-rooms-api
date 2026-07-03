@@ -201,7 +201,7 @@ func TestSchedule_CreateSlots_ExcludingCurrentDay(t *testing.T) {
 		model.RestoreDayTime(750),
 	)
 
-	slots, err := schedule.CreateSlots()
+	slots, err := schedule.CreateSlots(nil)
 
 	fstSlotTotalMins := slots[0].Start().Hour()*60 + slots[0].Start().Minute()
 	sndSlotTotalMins := slots[len(slots)-1].End().Hour()*60 + slots[len(slots)-1].End().Minute()
@@ -239,7 +239,7 @@ func TestSchedule_CreateSlots_CurrentDay(t *testing.T) {
 		model.RestoreDayTime(1440),
 	)
 
-	slots, err := schedule.CreateSlots()
+	slots, err := schedule.CreateSlots(nil)
 
 	require.NoError(t, err)
 	require.NotNil(t, slots)
@@ -261,7 +261,7 @@ func TestSchedule_CreateSlots_Error(t *testing.T) {
 		model.RestoreDayTime(1440),
 	)
 
-	slots, err := schedule.CreateSlots()
+	slots, err := schedule.CreateSlots(nil)
 
 	require.Error(t, err)
 	require.Nil(t, slots)

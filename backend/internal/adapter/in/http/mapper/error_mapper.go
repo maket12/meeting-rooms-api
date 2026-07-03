@@ -64,7 +64,7 @@ func HttpError(err error) *pkgerrs.OutErr {
 		case errors.Is(err, errs.ErrInvalidInput):
 			return pkgerrs.NewOutError(
 				http.StatusBadRequest,
-				w.Public.Error(),
+				w.Public.Error()+": "+w.Reason.Error(),
 				w.Reason,
 			)
 
