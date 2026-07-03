@@ -47,17 +47,17 @@ func (uc *ListSlotsUC) Execute(ctx context.Context, in dto.ListSlotsInput) (dto.
 	}
 
 	var (
-		slots              []*model.Slot
-		listErr, createErr error
+		slots   []*model.Slot
+		listErr error
 	)
 
 	err = uc.trManager.Do(ctx, func(txCtx context.Context) error {
-		slots, listErr = uc.slot.ListFree(txCtx, in.RoomID, in.Date)
-		if listErr != nil {
-			return ucerrs.Wrap(ucerrs.ErrListSlotsDB, listErr)
+		exists, checkErr := uc.slot.ExistsForDate(txCtx, in.RoomID, in.Date)
+		if checkErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrExistsForDateDB, checkErr)
 		}
 
-		if len(slots) == 0 {
+		if !exists {
 			sch, getErr := uc.schedule.Get(txCtx, in.RoomID)
 			if getErr != nil {
 				if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {
@@ -66,14 +66,19 @@ func (uc *ListSlotsUC) Execute(ctx context.Context, in dto.ListSlotsInput) (dto.
 				return ucerrs.Wrap(ucerrs.ErrGetScheduleDB, getErr)
 			}
 
-			slots, createErr = sch.CreateSlots(utils.VPtr(in.Date))
+			generatedSlots, createErr := sch.CreateSlots(utils.VPtr(in.Date))
 			if createErr != nil {
 				return ucerrs.Wrap(ucerrs.ErrInvalidInput, createErr)
 			}
 
-			if createErr = uc.slot.CreateBatch(txCtx, slots); createErr != nil {
+			if createErr = uc.slot.CreateBatch(txCtx, generatedSlots); createErr != nil {
 				return ucerrs.Wrap(ucerrs.ErrCreateSlotsDB, createErr)
 			}
+		}
+
+		slots, listErr = uc.slot.ListFree(txCtx, in.RoomID, in.Date)
+		if listErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrListSlotsDB, listErr)
 		}
 
 		return nil

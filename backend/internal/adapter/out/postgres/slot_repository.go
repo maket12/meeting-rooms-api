@@ -86,3 +86,24 @@ func (r *SlotRepository) ListFree(ctx context.Context, roomID uuid.UUID, date ti
 
 	return mapper.MapSQLCToSlots(rawSlots), nil
 }
+
+func (r *SlotRepository) ExistsForDate(ctx context.Context, roomID uuid.UUID, date time.Time) (bool, error) {
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	exists, err := r.q.HasSlotsForDate(ctx, db,
+		sqlc.HasSlotsForDateParams{
+			RoomID: pgtype.UUID{
+				Bytes: roomID,
+				Valid: true,
+			},
+			Date: pgtype.Date{
+				Time:  date,
+				Valid: true,
+			},
+		})
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}

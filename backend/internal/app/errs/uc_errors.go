@@ -37,6 +37,7 @@ var (
 	ErrCreateSlotsDB         = errors.New("failed to create slots using db")
 	ErrGetSlotDB             = errors.New("failed to get slot using db")
 	ErrListSlotsDB           = errors.New("failed to get a list of slots using db")
+	ErrExistsForDateDB       = errors.New("failed to check existing of slots for specified date using db")
 	ErrCreateBookingDB       = errors.New("failed to create booking using db")
 	ErrGetBookingDB          = errors.New("failed to get booking using db")
 	ErrUpdateBookingStatusDB = errors.New("failed to update booking status using db")

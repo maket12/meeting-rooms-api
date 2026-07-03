@@ -108,3 +108,24 @@ func (q *Queries) GetSlotByID(ctx context.Context, db DBTX, id pgtype.UUID) (Slo
 	)
 	return i, err
 }
+
+const hasSlotsForDate = `-- name: HasSlotsForDate :one
+SELECT EXISTS (
+    SELECT 1
+    FROM slots
+    WHERE room_id = $1
+        AND start_time::date = $2::date
+)
+`
+
+type HasSlotsForDateParams struct {
+	RoomID pgtype.UUID
+	Date   pgtype.Date
+}
+
+func (q *Queries) HasSlotsForDate(ctx context.Context, db DBTX, arg HasSlotsForDateParams) (bool, error) {
+	row := db.QueryRow(ctx, hasSlotsForDate, arg.RoomID, arg.Date)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}

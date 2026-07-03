@@ -33,3 +33,11 @@ WHERE s.room_id = @room_id
     AND s.start_time::date = @date::date
     AND b.id IS NULL
 ORDER BY s.start_time;
+
+-- name: HasSlotsForDate :one
+SELECT EXISTS (
+    SELECT 1
+    FROM slots
+    WHERE room_id = @room_id
+        AND start_time::date = @date::date
+);

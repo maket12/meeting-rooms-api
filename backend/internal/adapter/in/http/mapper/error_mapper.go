@@ -1,19 +1,19 @@
 package mapper
 
 import (
-	"backend/internal/app/errs"
-	pkgerrs "backend/pkg/errs"
+	ucerrs "backend/internal/app/errs"
+	pkgucerrs "backend/pkg/errs"
 	"errors"
 	"net/http"
 )
 
-func HttpError(err error) *pkgerrs.OutErr {
+func HttpError(err error) *pkgucerrs.OutErr {
 	if err == nil {
 		return nil
 	}
 
-	if errors.Is(err, pkgerrs.ErrInvalidUserID) {
-		return pkgerrs.NewOutError(
+	if errors.Is(err, pkgucerrs.ErrInvalidUserID) {
+		return pkgucerrs.NewOutError(
 			http.StatusUnauthorized,
 			err.Error(),
 			err,
@@ -21,55 +21,56 @@ func HttpError(err error) *pkgerrs.OutErr {
 	}
 
 	switch {
-	case errors.Is(err, pkgerrs.ErrInvalidJSON),
-		errors.Is(err, pkgerrs.ErrInvalidIdentifier),
-		errors.Is(err, pkgerrs.ErrValueIsInvalid),
-		errors.Is(err, pkgerrs.ErrInvalidUserID),
-		errors.Is(err, pkgerrs.ErrInvalidDate),
-		errors.Is(err, pkgerrs.ErrInvalidPage):
-		return pkgerrs.NewOutError(
+	case errors.Is(err, pkgucerrs.ErrInvalidJSON),
+		errors.Is(err, pkgucerrs.ErrInvalidIdentifier),
+		errors.Is(err, pkgucerrs.ErrValueIsInvalid),
+		errors.Is(err, pkgucerrs.ErrInvalidUserID),
+		errors.Is(err, pkgucerrs.ErrInvalidDate),
+		errors.Is(err, pkgucerrs.ErrInvalidPage):
+		return pkgucerrs.NewOutError(
 			http.StatusBadRequest,
 			err.Error(),
 			err,
 		)
 	}
 
-	var w *errs.WrappedError
+	var w *ucerrs.WrappedError
 	if errors.As(err, &w) {
 		switch {
-		case errors.Is(err, errs.ErrCreateUserDB),
-			errors.Is(err, errs.ErrGetUserByIDDB),
-			errors.Is(err, errs.ErrGetUserByEmailDB),
-			errors.Is(err, errs.ErrCreateRoomDB),
-			errors.Is(err, errs.ErrListRoomsDB),
-			errors.Is(err, errs.ErrCreateScheduleDB),
-			errors.Is(err, errs.ErrGetScheduleDB),
-			errors.Is(err, errs.ErrCreateSlotsDB),
-			errors.Is(err, errs.ErrGetSlotDB),
-			errors.Is(err, errs.ErrListSlotsDB),
-			errors.Is(err, errs.ErrCreateBookingDB),
-			errors.Is(err, errs.ErrGetBookingDB),
-			errors.Is(err, errs.ErrUpdateBookingStatusDB),
-			errors.Is(err, errs.ErrListBookingsDB),
-			errors.Is(err, errs.ErrListMyBookingsDB),
-			errors.Is(err, errs.ErrHashPassword),
-			errors.Is(err, errs.ErrGenerateToken),
-			errors.Is(err, errs.ErrCreateMeeting):
-			return pkgerrs.NewOutError(
+		case errors.Is(err, ucerrs.ErrCreateUserDB),
+			errors.Is(err, ucerrs.ErrGetUserByIDDB),
+			errors.Is(err, ucerrs.ErrGetUserByEmailDB),
+			errors.Is(err, ucerrs.ErrCreateRoomDB),
+			errors.Is(err, ucerrs.ErrListRoomsDB),
+			errors.Is(err, ucerrs.ErrCreateScheduleDB),
+			errors.Is(err, ucerrs.ErrGetScheduleDB),
+			errors.Is(err, ucerrs.ErrCreateSlotsDB),
+			errors.Is(err, ucerrs.ErrGetSlotDB),
+			errors.Is(err, ucerrs.ErrListSlotsDB),
+			errors.Is(err, ucerrs.ErrExistsForDateDB),
+			errors.Is(err, ucerrs.ErrCreateBookingDB),
+			errors.Is(err, ucerrs.ErrGetBookingDB),
+			errors.Is(err, ucerrs.ErrUpdateBookingStatusDB),
+			errors.Is(err, ucerrs.ErrListBookingsDB),
+			errors.Is(err, ucerrs.ErrListMyBookingsDB),
+			errors.Is(err, ucerrs.ErrHashPassword),
+			errors.Is(err, ucerrs.ErrGenerateToken),
+			errors.Is(err, ucerrs.ErrCreateMeeting):
+			return pkgucerrs.NewOutError(
 				http.StatusInternalServerError,
 				w.Public.Error(),
 				w.Reason,
 			)
 
-		case errors.Is(err, errs.ErrInvalidInput):
-			return pkgerrs.NewOutError(
+		case errors.Is(err, ucerrs.ErrInvalidInput):
+			return pkgucerrs.NewOutError(
 				http.StatusBadRequest,
 				w.Public.Error()+": "+w.Reason.Error(),
 				w.Reason,
 			)
 
 		default:
-			return pkgerrs.NewOutError(
+			return pkgucerrs.NewOutError(
 				http.StatusInternalServerError,
 				"internal error",
 				w.Reason,
@@ -78,43 +79,43 @@ func HttpError(err error) *pkgerrs.OutErr {
 	}
 
 	switch {
-	case errors.Is(err, errs.ErrInvalidCredentials):
-		return pkgerrs.NewOutError(
+	case errors.Is(err, ucerrs.ErrInvalidCredentials):
+		return pkgucerrs.NewOutError(
 			http.StatusUnauthorized,
 			err.Error(),
 			nil,
 		)
 
-	case errors.Is(err, errs.ErrCannotCancelBooking):
-		return pkgerrs.NewOutError(
+	case errors.Is(err, ucerrs.ErrCannotCancelBooking):
+		return pkgucerrs.NewOutError(
 			http.StatusForbidden,
 			err.Error(),
 			nil,
 		)
 
-	case errors.Is(err, errs.ErrUserNotFound),
-		errors.Is(err, errs.ErrRoomNotFound),
-		errors.Is(err, errs.ErrScheduleNotFound),
-		errors.Is(err, errs.ErrSlotNotFound),
-		errors.Is(err, errs.ErrBookingNotFound):
-		return pkgerrs.NewOutError(
+	case errors.Is(err, ucerrs.ErrUserNotFound),
+		errors.Is(err, ucerrs.ErrRoomNotFound),
+		errors.Is(err, ucerrs.ErrScheduleNotFound),
+		errors.Is(err, ucerrs.ErrSlotNotFound),
+		errors.Is(err, ucerrs.ErrBookingNotFound):
+		return pkgucerrs.NewOutError(
 			http.StatusNotFound,
 			err.Error(),
 			nil,
 		)
 
-	case errors.Is(err, errs.ErrCannotCreateBooking),
-		errors.Is(err, errs.ErrUserAlreadyExists),
-		errors.Is(err, errs.ErrScheduleAlreadyExists),
-		errors.Is(err, errs.ErrBookingAlreadyExists):
-		return pkgerrs.NewOutError(
+	case errors.Is(err, ucerrs.ErrCannotCreateBooking),
+		errors.Is(err, ucerrs.ErrUserAlreadyExists),
+		errors.Is(err, ucerrs.ErrScheduleAlreadyExists),
+		errors.Is(err, ucerrs.ErrBookingAlreadyExists):
+		return pkgucerrs.NewOutError(
 			http.StatusConflict,
 			err.Error(),
 			nil,
 		)
 	}
 
-	return pkgerrs.NewOutError(
+	return pkgucerrs.NewOutError(
 		http.StatusInternalServerError,
 		"internal error",
 		nil,
