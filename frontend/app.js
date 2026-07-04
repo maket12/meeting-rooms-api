@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupEventListeners();
     initApp();
+    initUtcClock();
 });
 
 // Проверка авторизации при старте приложения
@@ -336,7 +337,16 @@ function logout() {
     state.selectedRoomId = null;
     state.selectedSlotId = null;
     state.slots = [];
-    localStorage.clear();
+
+    // Удаляем только ключи сессии. localStorage.clear() стирал ВСЁ хранилище,
+    // включая mr_slot_cache — из-за этого кэш метаданных слотов (комната/время
+    // брони) обнулялся при каждом логине через Dev UI Switcher, и "Мои бронирования"
+    // всегда показывали "данные недоступны".
+    localStorage.removeItem('mr_token');
+    localStorage.removeItem('mr_role');
+    localStorage.removeItem('mr_email');
+    localStorage.removeItem('mr_user_id');
+
     showAuthError(null);
     showScreen('auth');
 }
@@ -442,11 +452,66 @@ async function loadSlots(roomId) {
     try {
         const data = await apiRequest(`/rooms/${roomId}/slots/list?date=${dateInput}`);
         state.slots = data.slots || [];
+        // Бэкенд не отдаёт room_id/время для уже созданной брони (только slot_id),
+        // поэтому запоминаем метаданные слотов, которые реально видели с сервера —
+        // это единственный источник правды для последующего отображения "Моих броней".
+        cacheSlotMeta(state.slots, roomId);
     } catch (err) {
         state.slots = [];
         showToast('Не удалось загрузить слоты: ' + err.message, 'error');
     }
     renderSlotsGrid();
+}
+
+// =================================================================
+// Локальный кэш метаданных слотов (room_id/start/end по slot_id).
+// Нужен, чтобы показывать комнату и время в "Моих бронированиях":
+// API /bookings/my отдаёт только slot_id, без данных о комнате/времени,
+// а /rooms/{id}/slots/list не возвращает уже забронированные слоты.
+// Кэш пополняется РЕАЛЬНЫМИ данными сервера при каждой загрузке слотов
+// и переживает перезагрузку страницы (localStorage) — никаких выдуманных
+// значений сюда не попадает.
+// =================================================================
+const SLOT_CACHE_KEY = 'mr_slot_cache';
+const SLOT_CACHE_LIMIT = 500;
+
+function loadSlotCache() {
+    try {
+        return JSON.parse(localStorage.getItem(SLOT_CACHE_KEY)) || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function cacheSlotMeta(slots, roomId) {
+    if (!slots || slots.length === 0) return;
+    const cache = loadSlotCache();
+
+    slots.forEach(slot => {
+        cache[slot.id] = {
+            room_id: slot.room_id || roomId,
+            start: slot.start,
+            end: slot.end
+        };
+    });
+
+    // Ограничиваем размер кэша, чтобы не разрастался бесконечно —
+    // отбрасываем старые записи по порядку добавления.
+    const keys = Object.keys(cache);
+    if (keys.length > SLOT_CACHE_LIMIT) {
+        keys.slice(0, keys.length - SLOT_CACHE_LIMIT).forEach(k => delete cache[k]);
+    }
+
+    try {
+        localStorage.setItem(SLOT_CACHE_KEY, JSON.stringify(cache));
+    } catch (e) {
+        // localStorage переполнен/недоступен — не критично, просто не кэшируем.
+    }
+}
+
+function getCachedSlotMeta(slotId) {
+    const cache = loadSlotCache();
+    return cache[slotId] || null;
 }
 
 function renderSlotsGrid() {
@@ -573,11 +638,41 @@ async function loadMyBookings() {
         return;
     }
 
-    bookings.forEach(booking => {
+    // Обогащаем брони данными о комнате/времени из локального кэша слотов
+    // (см. cacheSlotMeta) — сам /bookings/my отдаёт только slot_id.
+    const enriched = bookings.map(booking => {
+        const slotMeta = getCachedSlotMeta(booking.slot_id);
+        const room = slotMeta ? state.rooms.find(r => r.id === slotMeta.room_id) : null;
+        return {
+            booking,
+            roomName: room ? room.name : null,
+            start: slotMeta ? slotMeta.start : null,
+            end: slotMeta ? slotMeta.end : null
+        };
+    });
+
+    // Сортировка: сначала активные брони, затем — по названию комнаты (по возрастанию).
+    // Брони с неизвестным названием комнаты (нет данных в кэше) уходят в конец своей группы.
+    enriched.sort((a, b) => {
+        const statusRank = s => (s.booking.status === 'active' ? 0 : 1);
+        const statusDiff = statusRank(a) - statusRank(b);
+        if (statusDiff !== 0) return statusDiff;
+
+        if (a.roomName && b.roomName) {
+            return a.roomName.localeCompare(b.roomName, 'ru');
+        }
+        if (a.roomName && !b.roomName) return -1;
+        if (!a.roomName && b.roomName) return 1;
+        return 0;
+    });
+
+    enriched.forEach(({ booking, roomName, start, end }) => {
         const div = document.createElement('div');
         div.className = 'p-4 bg-base-200 rounded-xl border border-base-300 relative flex flex-col justify-between gap-3';
 
-        const roomName = 'Переговорная комната';
+        const displayRoomName = roomName || 'Переговорная комната (данные недоступны)';
+        const timeRange = (start && end) ? `${formatIsoTime(start)} - ${formatIsoTime(end)}` : null;
+        const dateStr = start ? formatDateOnly(start) : null;
         const statusBadge = booking.status === 'active' ? 'badge-success' : 'badge-neutral opacity-50';
 
         let confLinkHtml = '';
@@ -596,10 +691,13 @@ async function loadMyBookings() {
         div.innerHTML = `
             <div>
                 <div class="flex items-center justify-between mb-1">
-                    <span class="font-bold text-sm text-base-content">${roomName}</span>
+                    <span class="font-bold text-sm text-base-content">${escapeHtml(displayRoomName)}</span>
                     <span class="badge badge-sm ${statusBadge} font-bold text-[10px]">${booking.status.toUpperCase()}</span>
                 </div>
                 <div class="text-xs font-mono text-base-content/70">
+                    ${timeRange ? `📅 ${dateStr} | 🕒 ${timeRange}` : 'Время недоступно'}
+                </div>
+                <div class="text-[10px] font-mono text-base-content/40 mt-0.5">
                     ID Брони: ${booking.id.substring(0, 8)}...
                 </div>
             </div>
@@ -820,6 +918,24 @@ function formatDateTime(dateTimeString) {
     });
 }
 
+// Извлекает только дату (DD.MM.YYYY) из строки даты/времени, поддерживая
+// как ISO 8601, так и формат Go time.String().
+function formatDateOnly(dateTimeString) {
+    if (!dateTimeString) return '—';
+
+    const normalized = String(dateTimeString)
+        .replace(' +0000 UTC', 'Z')
+        .replace(' ', 'T');
+
+    const d = new Date(normalized);
+    if (isNaN(d.getTime())) return '—';
+
+    return d.toLocaleDateString('ru-RU', {
+        timeZone: 'UTC',
+        day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+}
+
 function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -840,4 +956,30 @@ async function devLoginAs(role) {
 
 function devLogoutToAuth() {
     logout();
+}
+
+// Функция для запуска живых UTC-часов в углу экрана
+function initUtcClock() {
+    const timeVal = document.getElementById('utc-time-val');
+    if (!timeVal) return;
+
+    function updateClock() {
+        const now = new Date();
+
+        // Извлекаем компоненты времени UTC
+        const day = String(now.getUTCDate()).padStart(2, '0');
+        const month = String(now.getUTCMonth() + 1).padStart(2, '0'); // Месяцы с 0
+        const year = now.getUTCFullYear();
+
+        const hours = String(now.getUTCHours()).padStart(2, '0');
+        const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+
+        // Собираем строку формата DD.MM.YYYY HH:MM:SS
+        timeVal.textContent = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // Запускаем сразу и вешаем интервал на каждую секунду
+    updateClock();
+    setInterval(updateClock, 1000);
 }
