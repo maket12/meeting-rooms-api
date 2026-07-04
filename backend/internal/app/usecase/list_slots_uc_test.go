@@ -54,6 +54,7 @@ func TestListSlotsUC_Execute(t *testing.T) {
 			},
 			mockBehaviour: func(a adapter) {
 				a.room.EXPECT().Get(mock.Anything, roomID).Return(dummyRoom, nil)
+				a.slot.EXPECT().ExistsForDate(mock.Anything, roomID, testDate).Return(true, nil)
 				a.slot.EXPECT().ListFree(mock.Anything, roomID, testDate).Return(dummySlots, nil)
 			},
 			expectErr: nil,
@@ -66,9 +67,10 @@ func TestListSlotsUC_Execute(t *testing.T) {
 			},
 			mockBehaviour: func(a adapter) {
 				a.room.EXPECT().Get(mock.Anything, roomID).Return(dummyRoom, nil)
-				a.slot.EXPECT().ListFree(mock.Anything, roomID, testDate).Return([]*model.Slot{}, nil)
+				a.slot.EXPECT().ExistsForDate(mock.Anything, roomID, testDate).Return(false, nil)
 				a.schedule.EXPECT().Get(mock.Anything, roomID).Return(dummySchedule, nil)
 				a.slot.EXPECT().CreateBatch(mock.Anything, mock.AnythingOfType("[]*model.Slot")).Return(nil)
+				a.slot.EXPECT().ListFree(mock.Anything, roomID, testDate).Return(dummySlots, nil)
 			},
 			expectErr: nil,
 		},
@@ -95,16 +97,16 @@ func TestListSlotsUC_Execute(t *testing.T) {
 			expectErr: ucerrs.ErrGetRoomDB,
 		},
 		{
-			name: "Failure - slot list repository error",
+			name: "Failure - exists for date repository error",
 			input: dto.ListSlotsInput{
 				RoomID: roomID,
 				Date:   testDate,
 			},
 			mockBehaviour: func(a adapter) {
 				a.room.EXPECT().Get(mock.Anything, roomID).Return(dummyRoom, nil)
-				a.slot.EXPECT().ListFree(mock.Anything, roomID, testDate).Return(nil, errors.New("query timeout"))
+				a.slot.EXPECT().ExistsForDate(mock.Anything, roomID, testDate).Return(false, errors.New("db error"))
 			},
-			expectErr: ucerrs.ErrListSlotsDB,
+			expectErr: ucerrs.ErrExistsForDateDB,
 		},
 		{
 			name: "Failure - schedule not found when slots are empty",
@@ -114,7 +116,7 @@ func TestListSlotsUC_Execute(t *testing.T) {
 			},
 			mockBehaviour: func(a adapter) {
 				a.room.EXPECT().Get(mock.Anything, roomID).Return(dummyRoom, nil)
-				a.slot.EXPECT().ListFree(mock.Anything, roomID, testDate).Return([]*model.Slot{}, nil)
+				a.slot.EXPECT().ExistsForDate(mock.Anything, roomID, testDate).Return(false, nil)
 				a.schedule.EXPECT().Get(mock.Anything, roomID).Return(nil, pkgerrs.ErrObjectNotFound)
 			},
 			expectErr: ucerrs.ErrScheduleNotFound,
@@ -127,7 +129,7 @@ func TestListSlotsUC_Execute(t *testing.T) {
 			},
 			mockBehaviour: func(a adapter) {
 				a.room.EXPECT().Get(mock.Anything, roomID).Return(dummyRoom, nil)
-				a.slot.EXPECT().ListFree(mock.Anything, roomID, testDate).Return([]*model.Slot{}, nil)
+				a.slot.EXPECT().ExistsForDate(mock.Anything, roomID, testDate).Return(false, nil)
 				a.schedule.EXPECT().Get(mock.Anything, roomID).Return(nil, errors.New("db error"))
 			},
 			expectErr: ucerrs.ErrGetScheduleDB,
@@ -140,7 +142,7 @@ func TestListSlotsUC_Execute(t *testing.T) {
 			},
 			mockBehaviour: func(a adapter) {
 				a.room.EXPECT().Get(mock.Anything, roomID).Return(dummyRoom, nil)
-				a.slot.EXPECT().ListFree(mock.Anything, roomID, testDate).Return([]*model.Slot{}, nil)
+				a.slot.EXPECT().ExistsForDate(mock.Anything, roomID, testDate).Return(false, nil)
 				a.schedule.EXPECT().Get(mock.Anything, roomID).Return(dummySchedule, nil)
 				a.slot.EXPECT().CreateBatch(mock.Anything, mock.AnythingOfType("[]*model.Slot")).Return(errors.New("insert failed"))
 			},
