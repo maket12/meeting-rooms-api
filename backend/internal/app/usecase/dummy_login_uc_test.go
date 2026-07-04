@@ -41,7 +41,7 @@ func TestDummyLoginUC_Execute(t *testing.T) {
 				u := model.RestoreUser(adminID, "admin@avito.ru", "hash", "admin", time.Now())
 				a.user.EXPECT().GetByID(mock.Anything, adminID).Return(u, nil)
 
-				a.jwtGen.EXPECT().GenerateToken(u.ID(), "admin").Return("admin_token", nil)
+				a.jwtGen.EXPECT().Generate(u.ID(), "admin").Return("admin_token", nil)
 			},
 			expectErr: nil,
 		},
@@ -52,7 +52,7 @@ func TestDummyLoginUC_Execute(t *testing.T) {
 				u := model.RestoreUser(userID, "user@avito.ru", "hash", "user", time.Now())
 				a.user.EXPECT().GetByID(mock.Anything, userID).Return(u, nil)
 
-				a.jwtGen.EXPECT().GenerateToken(u.ID(), "user").Return("user_token", nil)
+				a.jwtGen.EXPECT().Generate(u.ID(), "user").Return("user_token", nil)
 			},
 			expectErr: nil,
 		},
@@ -84,7 +84,7 @@ func TestDummyLoginUC_Execute(t *testing.T) {
 			mockBehaviour: func(a adapter) {
 				u := model.RestoreUser(adminID, "admin@avito.ru", "hash", "admin", time.Now())
 				a.user.EXPECT().GetByID(mock.Anything, adminID).Return(u, nil)
-				a.jwtGen.EXPECT().GenerateToken(u.ID(), "admin").Return("", errors.New("token fail"))
+				a.jwtGen.EXPECT().Generate(u.ID(), "admin").Return("", errors.New("token fail"))
 			},
 			expectErr: ucerrs.ErrGenerateToken,
 		},

@@ -8,6 +8,6 @@ outpkg: "mocks"
 
 
 packages:
-  MeetingRoomsAPI/internal/domain/port:
+  backend/internal/domain/port:
     config:
       all: true

@@ -46,5 +46,16 @@ services:
     ports:
       - "8080:8080"
 
+  meeting-rooms-frontend:
+    image: nginx:alpine
+    container_name: meeting-rooms-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - meeting-rooms-server
+
 volumes:
   meeting_rooms_db_data:

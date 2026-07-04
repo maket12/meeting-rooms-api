@@ -40,7 +40,7 @@ func TestLoginUC_Execute(t *testing.T) {
 				u, _ := model.NewUser("test@avito.ru", "hashed_pass", "user")
 				a.user.EXPECT().GetByEmail(mock.Anything, "test@avito.ru").Return(u, nil)
 				a.password.EXPECT().Compare("hashed_pass", "correct_password").Return(true)
-				a.token.EXPECT().GenerateToken(u.ID(), u.Role().String()).Return("jwt_token", nil)
+				a.token.EXPECT().Generate(u.ID(), u.Role().String()).Return("jwt_token", nil)
 			},
 			expectErr: nil,
 		},
@@ -79,7 +79,7 @@ func TestLoginUC_Execute(t *testing.T) {
 				u, _ := model.NewUser("test@avito.ru", "hashed_pass", "user")
 				a.user.EXPECT().GetByEmail(mock.Anything, "test@avito.ru").Return(u, nil)
 				a.password.EXPECT().Compare("hashed_pass", "password").Return(true)
-				a.token.EXPECT().GenerateToken(u.ID(), u.Role().String()).
+				a.token.EXPECT().Generate(u.ID(), u.Role().String()).
 					Return("", errors.New("internal crypto error"))
 			},
 			expectErr: ucerrs.ErrGenerateToken,
