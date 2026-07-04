@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Room Booking Service (Test Task)
-  description: Сервис бронирования переговорок
+  title: Room Booking Service
+  description: Meeting room booking service API
   version: "1.0.0"
 
 servers:
@@ -29,7 +29,7 @@ components:
       schema:
         type: string
         format: uuid
-      description: Идентификатор переговорки
+      description: Room identifier
     BookingIdPath:
       name: id
       in: path
@@ -37,7 +37,7 @@ components:
       schema:
         type: string
         format: uuid
-      description: Идентификатор брони
+      description: Booking identifier
 
   schemas:
     ErrorResponse:
@@ -55,7 +55,7 @@ components:
       properties:
         token:
           type: string
-          description: JWT для заголовка Authorization Bearer
+          description: JWT for the Authorization Bearer header
 
     User:
       type: object
@@ -111,15 +111,15 @@ components:
             type: integer
             minimum: 1
             maximum: 7
-          description: "1=Пн .. 7=Вс, дни доступности. Каждое значение должно быть в диапазоне 1–7."
+          description: "Days of availability (1=Mon .. 7=Sun). Each value must be in the range of 1–7."
         start_time:
           type: string
           pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
-          description: Время начала (HH:MM) в рамках дня. Интерпретируется как UTC.
+          description: Start time (HH:MM) within the day. Interpreted as UTC.
         end_time:
           type: string
           pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
-          description: Время окончания (HH:MM) в рамках дня. Интерпретируется как UTC.
+          description: End time (HH:MM) within the day. Interpreted as UTC.
 
     Slot:
       type: object
@@ -134,11 +134,11 @@ components:
         start:
           type: string
           format: date-time
-          description: Время начала слота в UTC (ISO 8601, например 2024-06-10T09:00:00Z)
+          description: Slot start time in UTC (ISO 8601, e.g., 2024-06-10T09:00:00Z)
         end:
           type: string
           format: date-time
-          description: Время окончания слота в UTC (ISO 8601, например 2024-06-10T09:30:00Z)
+          description: Slot end time in UTC (ISO 8601, e.g., 2024-06-10T09:30:00Z)
 
     Booking:
       type: object
@@ -171,13 +171,13 @@ components:
       properties:
         page:
           type: integer
-          description: Текущая страница (начиная с 1)
+          description: Current page number (starting from 1)
         page_size:
           type: integer
-          description: Размер страницы
+          description: Number of items per page
         total:
           type: integer
-          description: Общее количество записей
+          description: Total number of records
 
     CreateScheduleRequest:
       type: object
@@ -188,19 +188,19 @@ components:
             type: integer
             minimum: 1
             maximum: 7
-          description: "1=Пн .. 7=Вс, дни доступности. Каждое значение должно быть в диапазоне 1–7."
+          description: "Days of availability (1=Mon .. 7=Sun). Each value must be in the range of 1–7."
         start_time:
           type: string
           pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
-          description: Время начала (HH:MM) в рамках дня. Интерпретируется как UTC.
+          description: Start time (HH:MM) within the day. Interpreted as UTC.
         end_time:
           type: string
           pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
-          description: Время окончания (HH:MM) в рамках дня. Интерпретируется как UTC.
+          description: End time (HH:MM) within the day. Interpreted as UTC.
 
   responses:
     InvalidIdentifierError:
-      description: Некорректный идентификатор
+      description: Invalid identifier
       content:
         application/json:
           schema:
@@ -209,23 +209,23 @@ components:
             error: "invalid identifier format"
 
     UnauthorizedError:
-      description: Ошибка авторизации
+      description: Authorization error
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
             missing_header:
-              summary: Отсутствует заголовок
+              summary: Missing authorization header
               value:
                 error: "missing auth header"
             invalid_token:
-              summary: Невалидный или просроченный токен
+              summary: Invalid or expired token
               value:
                 error: "invalid or expired token"
 
     ForbiddenError:
-      description: Недостаточно прав для совершения операции
+      description: Insufficient permissions to perform the operation
       content:
         application/json:
           schema:
@@ -234,9 +234,7 @@ components:
             error: "insufficient permissions"
 
     UserNotFoundError:
-      description: >
-          Пользователь с данной ролью не существует.
-          Фактически является ошибкой сервера, так как возникает при отсутствии seed данных.
+      description: User with the specified role does not exist.
       content:
         application/json:
           schema:
@@ -245,7 +243,7 @@ components:
             error: "user not found"
 
     RoomNotFoundError:
-      description: Комната не найдена
+      description: Room not found
       content:
         application/json:
           schema:
@@ -254,7 +252,7 @@ components:
             error: "room not found"
 
     ScheduleNotFoundError:
-      description: Расписание не найдено
+      description: Schedule not found
       content:
         application/json:
           schema:
@@ -263,7 +261,7 @@ components:
             error: "schedule not found"
 
     SlotNotFoundError:
-      description: Слот не найден
+      description: Slot not found
       content:
         application/json:
           schema:
@@ -272,7 +270,7 @@ components:
             error: "slot not found"
 
     BookingNotFoundError:
-      description: Бронь не найдена
+      description: Booking not found
       content:
         application/json:
           schema:
@@ -281,7 +279,7 @@ components:
             error: "booking not found"
 
     UserAlreadyExistsError:
-      description: Пользователь с таким email уже существует
+      description: A user with the given email already exists
       content:
         application/json:
           schema:
@@ -290,7 +288,7 @@ components:
             error: "user with given email already exists"
 
     ScheduleAlreadyExistsError:
-      description: Расписание для данной комнаты уже существует
+      description: A schedule for this room already exists
       content:
         application/json:
           schema:
@@ -299,7 +297,7 @@ components:
             error: "schedule for this room already exists"
 
     InternalError:
-      description: Внутренняя ошибка сервера
+      description: Internal server error
       content:
         application/json:
           schema:
@@ -315,12 +313,8 @@ paths:
   /register:
     post:
       tags: [Auth]
-      summary: "Регистрация пользователя (ДОПОЛНИТЕЛЬНОЕ ЗАДАНИЕ — необязательно)"
-      description: >
-        Создаёт нового пользователя и возвращает его данные.
-        Реализация этого эндпоинта является **дополнительным заданием**.
-        Для авторизации в рамках обязательной части используйте `/dummyLogin`.
-        Доступен без авторизации.
+      summary: Register a new user
+      description: Creates a new user and returns their profile details. Accessible without authentication.
       requestBody:
         required: true
         content:
@@ -339,7 +333,7 @@ paths:
                   enum: [admin, user]
       responses:
         '201':
-          description: Пользователь создан
+          description: User created successfully
           content:
             application/json:
               schema:
@@ -348,25 +342,25 @@ paths:
                   user:
                     $ref: '#/components/schemas/User'
         '400':
-          description: Неверный запрос
+          description: Bad request
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 invalid_json:
-                  summary: Битый JSON
+                  summary: Malformed JSON
                   value:
                     error: "invalid json"
                 incorrect_email:
-                  summary: Email не указан
+                  summary: Email not provided or invalid
                   value:
                     error: "invalid input"
                 incorrect_password:
-                  summary: Пароль не указан
+                  summary: Password not provided
                   value:
                     error: "invalid input"
                 incorrect_role:
-                  summary: Роль не указана или передано недопустимое значение
+                  summary: Role not provided or invalid
                   value:
                     error: "invalid input"
         '409':
@@ -377,12 +371,8 @@ paths:
   /login:
     post:
       tags: [Auth]
-      summary: "Авторизация по email и паролю (ДОПОЛНИТЕЛЬНОЕ ЗАДАНИЕ — необязательно)"
-      description: >
-        Авторизует пользователя по email и паролю, возвращает JWT.
-        Реализация этого эндпоинта является **дополнительным заданием**.
-        Для авторизации в рамках обязательной части используйте `/dummyLogin`.
-        Доступен без авторизации.
+      summary: Authenticate via email and password
+      description: Authenticates a user using email and password, returning a JWT token. Accessible without authentication.
       requestBody:
         required: true
         content:
@@ -398,23 +388,23 @@ paths:
                   type: string
       responses:
         '200':
-          description: Успешная авторизация
+          description: Successful authentication
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Token'
         '400':
-          description: Неверный запрос
+          description: Bad request
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 invalid_json:
-                  summary: Битый JSON
+                  summary: Malformed JSON
                   value:
                     error: "invalid json"
         '401':
-          description: Неверные учётные данные
+          description: Invalid credentials
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -426,16 +416,12 @@ paths:
   /dummyLogin:
     post:
       tags: [Auth]
-      summary: Получить тестовый JWT по роли (ОБЯЗАТЕЛЬНО). Доступен без авторизации.
+      summary: Get a test JWT by role
       description: >
-        Выдаёт тестовый JWT для указанной роли (admin / user).
-        Для каждой роли возвращается **фиксированный UUID** пользователя:
-        один и тот же UUID для всех запросов с ролью admin и один и тот же UUID для роли user.
-        Это обеспечивает стабильность при тестировании сценариев, требующих проверки владельца брони.
-        JWT должен содержать как минимум `user_id` (UUID) и `role`.
-        Этот эндпоинт является **обязательным** и должен быть реализован в любом случае,
-        независимо от реализации `/register` и `/login`.
-        Принимает только допустимые значения роли: `admin` или `user`; иные значения — 400.
+        Returns a test JWT for the specified role (admin / user).
+        For each role, a fixed user UUID is returned to ensure consistency during testing.
+        The JWT contains at least `user_id` (UUID) and `role`.
+        Accessible without authentication. Only accepts valid role values: `admin` or `user`.
       requestBody:
         required: true
         content:
@@ -449,23 +435,23 @@ paths:
                   enum: [admin, user]
       responses:
         '200':
-          description: Тестовый токен
+          description: Test token generated successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Token'
         '400':
-          description: Неверный запрос
+          description: Bad request
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 invalid_json:
-                  summary: Битый JSON
+                  summary: Malformed JSON
                   value:
                     error: "invalid json"
                 incorrect_role:
-                  summary: Недопустимое значение роли
+                  summary: Invalid role value
                   value:
                     error: "invalid input"
         '404':
@@ -480,11 +466,11 @@ paths:
   /rooms/list:
     get:
       tags: [Rooms]
-      summary: Список переговорок (admin и user)
+      summary: Get a list of meeting rooms (admin and user)
       security: [{ BearerAuth: [] }]
       responses:
         '200':
-          description: Список переговорок
+          description: List of meeting rooms
           content:
             application/json:
               schema:
@@ -502,7 +488,7 @@ paths:
   /rooms/create:
     post:
       tags: [Rooms]
-      summary: Создать переговорку (только admin)
+      summary: Create a meeting room (admin only)
       security: [{ BearerAuth: [] }]
       requestBody:
         required: true
@@ -522,7 +508,7 @@ paths:
                   nullable: true
       responses:
         '201':
-          description: Переговорка создана
+          description: Meeting room created successfully
           content:
             application/json:
               schema:
@@ -531,25 +517,25 @@ paths:
                   room:
                     $ref: '#/components/schemas/Room'
         '400':
-          description: Неверный запрос
+          description: Bad request
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 invalid_json:
-                  summary: Битый JSON
+                  summary: Malformed JSON
                   value:
                     error: "invalid json"
                 incorrect_name:
-                  summary: Имя не указано
+                  summary: Missing room name
                   value:
                     error: "invalid input"
                 incorrect_description:
-                  summary: Некорректное описание
+                  summary: Invalid description format
                   value:
                     error: "invalid input"
                 incorrect_capacity:
-                  summary: Некорректное значение вместимости
+                  summary: Invalid capacity value
                   value:
                     error: "invalid input"
         '401':
@@ -566,12 +552,11 @@ paths:
   /rooms/{id}/schedule/create:
     post:
       tags: [Schedules]
-      summary: Создать расписание переговорки (только admin, только один раз). Длительность слота 30 мин. После создания расписание изменить нельзя.
+      summary: Create a schedule for a meeting room (admin only). Slot duration is 30 minutes. Immutable once created.
       description: >
-        Доступно только роли admin.
-        Расписание можно создать только один раз для каждой переговорки.
-        Поле `daysOfWeek` должно содержать значения от 1 до 7 (1=Пн, 7=Вс).
-        При передаче значений вне этого диапазона возвращается 400.
+        Accessible only to the admin role. A schedule can only be created once per room.
+        The `daysOfWeek` array must contain values from 1 to 7 (1=Mon, 7=Sun).
+        Passing values outside this range returns a 400 error.
       security: [{ BearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/RoomIdPath'
@@ -583,7 +568,7 @@ paths:
               $ref: '#/components/schemas/CreateScheduleRequest'
       responses:
         '201':
-          description: Расписание создано
+          description: Schedule created successfully
           content:
             application/json:
               schema:
@@ -592,30 +577,30 @@ paths:
                   schedule:
                     $ref: '#/components/schemas/Schedule'
         '400':
-          description: Неверный запрос
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               examples:
                 invalid_json:
-                  summary: Битый JSON
+                  summary: Malformed JSON
                   value:
                     error: "invalid json"
                 incorrect_room_id:
-                  summary: Некорректный идентификатор
+                  summary: Invalid room identifier
                   value:
                     error: "invalid identifier format"
                 incorrect_days_of_week:
-                  summary: Некорректное значение days_of_week
+                  summary: Invalid days_of_week value
                   value:
                     error: "invalid input"
                 incorrect_start_time:
-                  summary: Некорректные часы работы (начало)
+                  summary: Invalid start time
                   value:
                     error: "invalid input"
                 incorrect_end_time:
-                  summary: Некорректные часы работы (конец)
+                  summary: Invalid end time
                   value:
                     error: "invalid input"
         '401':
@@ -636,25 +621,25 @@ paths:
   /rooms/{id}/slots/list:
     get:
       tags: [Slots]
-      summary: Список доступных для бронирования слотов по переговорке и дате (admin и user). Наиболее нагруженный эндпоинт.
+      summary: Get available booking slots for a room by date (admin and user)
       description: >
-        Возвращает слоты, не занятые активной бронью, для указанной переговорки на указанную дату.
-        Все даты и время передаются и возвращаются в UTC.
-        Параметр `date` является обязательным; при его отсутствии возвращается 400.
-        Если у переговорки нет расписания — возвращается пустой список (переговорка считается всегда недоступной).
+        Returns slots that are not occupied by an active booking for the specified meeting room on a specific date.
+        All dates and times must be passed and returned in UTC.
+        The `date` query parameter is required; omitting it results in a 400 error.
+        If the meeting room does not have a schedule, an empty list is returned.
       security: [{ BearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/RoomIdPath'
         - name: date
           in: query
           required: true
-          description: "Дата в формате ISO 8601 (например: 2024-06-10). Обязательный параметр; при отсутствии — 400."
+          description: "Date in ISO 8601 format (e.g., 2024-06-10). Required parameter."
           schema:
             type: string
             format: date
       responses:
         '200':
-          description: Список доступных слотов (не занятых активной бронью). Пустой список, если у переговорки нет расписания или на эту дату нет слотов.
+          description: List of available slots. Returns an empty list if the room has no schedule or no slots available on the given date.
           content:
             application/json:
               schema:
@@ -665,35 +650,35 @@ paths:
                     items:
                       $ref: '#/components/schemas/Slot'
         '400':
-          description: Неверный запрос
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               examples:
                 incorrect_room_id:
-                  summary: Некорректный идентификатор
+                  summary: Invalid room identifier
                   value:
                     error: "invalid identifier format"
                 incorrect_date:
-                  summary: Некорректная дата
+                  summary: Invalid date provided
                   value:
                     error: "invalid input"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
-          description: Ресурс не найден
+          description: Resource not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               examples:
                 room_not_found:
-                  summary: Комната не найдена
+                  summary: Room not found
                   value:
                     error: "room not found"
                 schedule_not_found:
-                  summary: Расписание не найдено
+                  summary: Schedule not found
                   value:
                     error: "schedule not found"
         '500':
@@ -706,11 +691,11 @@ paths:
   /bookings/create:
     post:
       tags: [ Bookings ]
-      summary: Создать бронь на слот (только user). Опционально — запросить ссылку на конференцию.
+      summary: Create a booking for a slot (user only)
       description: >
-        Доступно только роли user. Администратор не может создавать брони (403).
-        `userId` берётся из JWT-токена, а не из тела запроса.
-        Если временной слот находится в прошлом (start < now), возвращается 409 (CONFLICT).
+        Accessible only to the user role. Admins cannot create bookings (returns 403).
+        `userId` is extracted from the JWT token, not the request body.
+        If the time slot is in the past (start < now), a 409 Conflict is returned.
       security: [ { BearerAuth: [ ] } ]
       requestBody:
         required: true
@@ -728,7 +713,7 @@ paths:
                   default: false
       responses:
         '201':
-          description: Бронь создана
+          description: Booking created successfully
           content:
             application/json:
               schema:
@@ -745,17 +730,17 @@ paths:
         '404':
           $ref: "#/components/responses/SlotNotFoundError"
         '409':
-          description: Слот уже занят или находится в прошлом
+          description: Slot is already occupied or in the past
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 booking_already_exists:
-                  summary: Бронь не может быть создана, так как слот уже занят
+                  summary: Slot is already booked
                   value:
                     error: "booking for this slot already exists"
                 slot_cannot_be_booked:
-                  summary: Слот находится в прошлом и не может быть забронирован
+                  summary: Slot is in the past and cannot be booked
                   value:
                     error: "specified slot is in the past"
         '500':
@@ -764,24 +749,23 @@ paths:
   /bookings/list:
     get:
       tags: [Bookings]
-      summary: Список всех броней с пагинацией (только admin)
+      summary: Paginated list of all bookings (admin only)
       description: >
-        Доступно только роли admin.
-        Поддерживает пагинацию через параметры `page` и `pageSize`.
-        Оба параметра опциональны; значения по умолчанию: `page=1`, `pageSize=20`.
-        Максимальное значение `pageSize` — 100.
+        Accessible only to the admin role.
+        Supports pagination via `page` and `pageSize` query parameters.
+        Defaults: `page=1`, `pageSize=10` (maximum 100).
       security: [{ BearerAuth: [] }]
       parameters:
         - name: page
           in: query
-          description: Номер страницы (начиная с 1). По умолчанию 1.
+          description: Page number (starting from 1). Default is 1.
           schema:
             type: integer
             minimum: 1
             default: 1
         - name: pageSize
           in: query
-          description: Количество записей на странице. По умолчанию 10, максимум 100.
+          description: Number of records per page. Default is 10, maximum is 100.
           schema:
             type: integer
             minimum: 1
@@ -789,7 +773,7 @@ paths:
             default: 10
       responses:
         '200':
-          description: Список всех броней
+          description: List of all bookings
           content:
             application/json:
               schema:
@@ -802,18 +786,18 @@ paths:
                   pagination:
                     $ref: '#/components/schemas/Pagination'
         '400':
-          description: Неверный запрос
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               examples:
                 incorrect_page:
-                  summary: Некорректное значение page
+                  summary: Invalid page value
                   value:
                     error: "invalid input"
                 incorrect_page_size:
-                  summary: Некорректное значение page size
+                  summary: Invalid page size value
                   value:
                     error: "invalid input"
         '401':
@@ -826,15 +810,15 @@ paths:
   /bookings/my:
     get:
       tags: [Bookings]
-      summary: Список броней текущего пользователя (только user)
+      summary: Get bookings for the current authenticated user (user only)
       description: >
-        Доступно только роли user.
-        Возвращает брони пользователя, чей `user_id` содержится в JWT-токене.
-        Возвращаются только брони на будущие слоты (start >= now); брони на уже прошедшие слоты в ответ не включаются.
+        Accessible only to the user role.
+        Returns bookings belonging to the `user_id` present in the JWT token.
+        Only upcoming bookings (start >= now) are returned; past bookings are omitted.
       security: [{ BearerAuth: [] }]
       responses:
         '200':
-          description: Список броней текущего пользователя
+          description: List of current user's bookings
           content:
             application/json:
               schema:
@@ -854,19 +838,17 @@ paths:
   /bookings/{id}/cancel:
     post:
       tags: [Bookings]
-      summary: Отменить бронь (только своя бронь, только user)
+      summary: Cancel a booking (user can only cancel their own bookings)
       description: >
-        Доступно только роли user. Пользователь может отменить только свою бронь.
-        Операция **идемпотентна**: повторный вызов на уже отменённой брони не является ошибкой
-        и возвращает 200 с актуальным состоянием брони (status: cancelled).
-        При попытке отменить чужую бронь — 403.
-        При отсутствии брони с указанным ID — 404.
+        Accessible only to the user role. A user can only cancel their own booking.
+        This operation is idempotent: calling it on an already cancelled booking returns 200 along with the updated state (`status: cancelled`).
+        Attempting to cancel someone else's booking returns 403.
       security: [{ BearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/BookingIdPath'
       responses:
         '200':
-          description: Бронь отменена (или уже была отменена ранее)
+          description: Booking cancelled successfully (or was already cancelled)
           content:
             application/json:
               schema:

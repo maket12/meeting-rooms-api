@@ -4,14 +4,15 @@ RUN apk add --no-cache git
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY ["backend/go.mod", "backend/go.sum", "./"]
 
 ENV GOPROXY=https://proxy.golang.org,https://goproxy.io,https://mirror.yandex.ru/mirrors/go-proxy/,direct
 
 RUN go mod download
 
-COPY pkg ./pkg/
-COPY .. .
+COPY backend/pkg ./pkg
+COPY "backend/cmd" "./cmd"
+COPY backend/internal ./internal
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o meeting-rooms-api ./cmd/app/main.go
 
@@ -20,6 +21,8 @@ WORKDIR /app
 
 RUN apk --no-cache add ca-certificates
 COPY --from=builder /app/meeting-rooms-api .
+
+COPY docs/api ./docs/api
 
 EXPOSE 8080
 CMD ["/app/meeting-rooms-api"]

@@ -55,6 +55,15 @@ func (r *Router) InitRoutes(log *slog.Logger) http.Handler {
 	})
 
 	// Swagger
+	mux.HandleFunc("GET /swagger/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "docs/api/openapi.yaml")
+	})
+
+	mux.Handle("GET /swagger/", http.StripPrefix("/swagger/", http.FileServer(http.Dir("docs/api"))))
+
+	mux.HandleFunc("GET /swagger", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/swagger/", http.StatusFound)
+	})
 
 	// Public routes
 	mux.HandleFunc("POST /dummyLogin", r.Auth.DummyLogin)
