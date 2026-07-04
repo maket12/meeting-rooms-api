@@ -3,7 +3,7 @@
 Это репозиторий для выполнения тестового задания на стажировку в Авито.
 
 Подробное условие задания находится в [TASK.md](TASK.md).
-Описание API — в [api.yaml](backend/api/api.yaml).
+Описание API — в [api.yaml](backend/api/openapi.yaml).
 
 ---
 

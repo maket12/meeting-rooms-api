@@ -54,6 +54,8 @@ func (r *Router) InitRoutes(log *slog.Logger) http.Handler {
 		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	})
 
+	// Swagger
+
 	// Public routes
 	mux.HandleFunc("POST /dummyLogin", r.Auth.DummyLogin)
 	mux.HandleFunc("POST /register", r.Auth.Register)
