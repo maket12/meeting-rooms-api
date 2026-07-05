@@ -32,9 +32,9 @@ type Config struct {
 	PasswordCost int `env:"PASSWORD_COST" envDefault:"10"`
 
 	// Service
-	HttpPort    int    `env:"AD_HTTP_PORT" envDefault:"8080"`
-	LogLevel    string `env:"AD_LOG_LEVEL" envDefault:"INFO"`
-	Environment string `env:"AD_ENVIRONMENT" envDefault:"development"`
+	HttpPort    int    `env:"HTTP_PORT" envDefault:"8080"`
+	LogLevel    string `env:"LOG_LEVEL" envDefault:"INFO"`
+	Environment string `env:"ENVIRONMENT" envDefault:"development"`
 }
 
 func Load() (*Config, error) {
@@ -67,18 +67,18 @@ type TestConfig struct {
 	DbMaxConnIdleTime time.Duration `env:"TEST_DB_MAX_CONNECTION_IDLETIME" envDefault:"5m"`
 
 	// Auth constants
-	AuthSecret   string        `env:"AUTH_SECRET" envDefault:"test-token"`
-	AuthTTL      time.Duration `env:"AUTH_TTL" envDefault:"1h"`
-	DummyAdminID uuid.UUID     `env:"DUMMY_ADMIN_ID" envDefault:"00000000-0000-0000-0000-000000000001"`
-	DummyUserID  uuid.UUID     `env:"DUMMY_USER_ID" envDefault:"00000000-0000-0000-0000-000000000002"`
+	AuthSecret   string        `env:"TEST_AUTH_SECRET" envDefault:"test-token"`
+	AuthTTL      time.Duration `env:"TEST_AUTH_TTL" envDefault:"1h"`
+	DummyAdminID uuid.UUID     `env:"TEST_DUMMY_ADMIN_ID" envDefault:"00000000-0000-0000-0000-000000000001"`
+	DummyUserID  uuid.UUID     `env:"TEST_DUMMY_USER_ID" envDefault:"00000000-0000-0000-0000-000000000002"`
 
 	// Password hasher
-	PasswordCost int `env:"PASSWORD_COST" envDefault:"10"`
+	PasswordCost int `env:"TEST_PASSWORD_COST" envDefault:"4"`
 
 	// Service
-	HttpPort    int    `env:"AD_HTTP_PORT" envDefault:"8080"`
-	LogLevel    string `env:"AD_LOG_LEVEL" envDefault:"INFO"`
-	Environment string `env:"AD_ENVIRONMENT" envDefault:"test"`
+	HttpPort    int    `env:"TEST_HTTP_PORT" envDefault:"8080"`
+	LogLevel    string `env:"TEST_LOG_LEVEL" envDefault:"INFO"`
+	Environment string `env:"TEST_ENVIRONMENT" envDefault:"test"`
 }
 
 func LoadTest() (*TestConfig, error) {
