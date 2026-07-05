@@ -41,25 +41,17 @@ const (
 	apiVersion       = "v1"
 )
 
-// ──────────────────────────────────────────────────────────────
-// Целевые объёмы согласно ТЗ
-// ──────────────────────────────────────────────────────────────
-
 const (
 	seedRoomsCount         = 50
-	seedSlotsPerRoomPerDay = 20  // 50 * 20 = 1000 слотов/день
-	seedUsersCount         = 500 // пул реальных пользователей (не обязательно все 10k физически бить запросами)
+	seedSlotsPerRoomPerDay = 20 // 50 * 20 = 1000 slots per day
+	seedUsersCount         = 500
 	seedHistoricBookings   = 100_000
-	freshSlotsForBooking   = 20_000 // отдельный запас свежих слотов под тест bookings/create
+	freshSlotsForBooking   = 20_000
 
 	targetRPS          = 100
 	targetSuccessRate  = 99.9 // %
 	slotsListP99Target = 200 * time.Millisecond
 )
-
-// ──────────────────────────────────────────────────────────────
-// testApp / setup
-// ──────────────────────────────────────────────────────────────
 
 type testApp struct {
 	server     *httptest.Server
@@ -182,9 +174,6 @@ func setupLoad(t *testing.T) *testApp {
 	return appInstance
 }
 
-// seedData наполняет базу объёмами согласно ТЗ:
-// 50 переговорок, 1k слотов/день, пул пользователей, 100k "исторических" броней
-// + отдельный запас свежих слотов под тест bookings/create.
 func (a *testApp) seedData(t *testing.T, ctx context.Context) {
 	t.Log("seed: creating rooms + schedules...")
 	a.roomIDs = make([]string, 0, seedRoomsCount)
@@ -239,7 +228,6 @@ func (a *testApp) seedData(t *testing.T, ctx context.Context) {
 	t.Logf("seed: reserved %d fresh slots for load run", len(a.freeSlots))
 }
 
-// bulkCreateBookings параллельно создаёт брони под сид-данные (не под замер SLI).
 func (a *testApp) bulkCreateBookings(t *testing.T, slotIDs []string) {
 	const seedWorkers = 50
 	sem := make(chan struct{}, seedWorkers)
@@ -464,8 +452,6 @@ type reqResult struct {
 	err     error
 }
 
-// runLoad гоняет fn с ограничением rps на протяжении duration, используя
-// пул воркеров (goroutines) + WaitGroup + rate.Limiter для контроля RPS.
 func runLoad(rps int, workers int, duration time.Duration, fn func() (*http.Response, error)) []reqResult {
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
@@ -514,7 +500,6 @@ func runLoad(rps int, workers int, duration time.Duration, fn func() (*http.Resp
 	return results
 }
 
-// checkSLI проверяет success-rate и p99 задержки против целевых порогов.
 func checkSLI(t *testing.T, name string, results []reqResult, latencyTarget time.Duration) {
 	require.NotEmpty(t, results, "%s: no requests were made", name)
 
