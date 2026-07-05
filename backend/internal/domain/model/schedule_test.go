@@ -230,6 +230,9 @@ func TestSchedule_CreateSlots_ExcludingCurrentDay(t *testing.T) {
 
 func TestSchedule_CreateSlots_CurrentDay(t *testing.T) {
 	currWeekDay := int(time.Now().UTC().Weekday())
+	if currWeekDay == 0 {
+		currWeekDay = 7
+	}
 
 	schedule := model.RestoreSchedule(
 		uuid.New(),
