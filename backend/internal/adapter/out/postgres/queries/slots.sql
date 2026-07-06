@@ -28,10 +28,14 @@ SELECT
     s.start_time,
     s.end_time
 FROM slots s
-LEFT JOIN bookings b ON s.id = b.slot_id AND b.status = 'active'
+         LEFT JOIN bookings b ON s.id = b.slot_id AND b.status = 'active'
 WHERE s.room_id = @room_id
-    AND s.start_time::date = @date::date
-    AND b.id IS NULL
+  AND s.start_time::date = @date::date
+  AND b.id IS NULL
+  AND (
+    @date::date > CURRENT_DATE
+        OR (s.start_time > NOW())
+    )
 ORDER BY s.start_time;
 
 -- name: HasSlotsForDate :one

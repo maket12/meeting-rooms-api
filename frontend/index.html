@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meeting Rooms API - Система бронирования переговорок</title>
-    <!-- Tailwind CSS и DaisyUI через CDN для мгновенного запуска и отображения -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Дополнительные стили для кастомизации скроллбаров и сетки */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -27,16 +25,11 @@
 </head>
 <body class="bg-base-300 min-h-screen text-base-content antialiased font-sans">
 
-<!-- Контейнер всплывающих уведомлений (toast) — отдельное «окно» для фоновых ошибок -->
 <div id="toast-container" class="toast toast-end z-[100] gap-2"></div>
 
-<!-- ================================================================= -->
-<!-- ЭКРАН 1: АУТЕНТИФИКАЦИЯ (Вход / Регистрация / Быстрый доступ)       -->
-<!-- ================================================================= -->
 <div id="screen-auth" class="flex items-center justify-center min-h-screen p-4">
     <div class="card w-full max-w-md bg-base-100 shadow-xl border border-base-200">
         <div class="card-body">
-            <!-- Заголовок портала -->
             <div class="text-center mb-4">
                 <div class="inline-flex p-3 bg-primary/10 text-primary rounded-xl mb-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -44,95 +37,85 @@
                     </svg>
                 </div>
                 <h1 class="text-2xl font-bold tracking-tight">Meeting Rooms API</h1>
-                <p class="text-sm text-base-content/60 mt-1">Вход в корпоративную систему бронирования</p>
+                <p class="text-sm text-base-content/60 mt-1" data-i18n="auth_subtitle">Вход в корпоративную систему бронирования</p>
             </div>
 
-            <!-- Вкладки: Вход / Регистрация -->
             <div role="tablist" class="tabs tabs-boxed mb-6 bg-base-200">
-                <button id="tab-signin-btn" role="tab" class="tab tab-active font-medium" onclick="switchAuthTab('signin')">Войти</button>
-                <button id="tab-signup-btn" role="tab" class="tab font-medium" onclick="switchAuthTab('signup')">Регистрация</button>
+                <button id="tab-signin-btn" role="tab" class="tab tab-active font-medium" onclick="switchAuthTab('signin')" data-i18n="tab_signin">Войти</button>
+                <button id="tab-signup-btn" role="tab" class="tab font-medium" onclick="switchAuthTab('signup')" data-i18n="tab_signup">Регистрация</button>
             </div>
 
-            <!-- Блок сообщений об ошибках аутентификации (скрыт по умолчанию) -->
             <div id="auth-alert" class="alert alert-error text-xs p-3 mb-4 hidden" aria-live="polite">
                 <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span id="auth-alert-text">Ошибка аутентификации</span>
+                <span id="auth-alert-text" data-i18n="auth_alert_default">Ошибка аутентификации</span>
             </div>
 
-            <!-- Форма 1: Классический Вход (Sign In) -->
             <form id="form-signin" class="space-y-4">
                 <div class="form-control">
-                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70">Email / Логин</label>
+                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70" data-i18n="label_email">Email / Логин</label>
                     <label class="input input-bordered flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70"><path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" /><path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" /></svg>
                         <input type="text" id="signin-email" class="grow text-sm" placeholder="corporate@company.com" required />
                     </label>
                 </div>
                 <div class="form-control">
-                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70">Пароль</label>
+                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70" data-i18n="label_password">Пароль</label>
                     <label class="input input-bordered flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70"><path fill-rule="evenodd" d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z" clip-rule="evenodd" /></svg>
                         <input type="password" id="signin-password" class="grow text-sm" placeholder="••••••••" required />
                     </label>
                 </div>
-                <button type="submit" id="btn-submit-signin" class="btn btn-primary w-full mt-2">Войти в систему</button>
+                <button type="submit" id="btn-submit-signin" class="btn btn-primary w-full mt-2" data-i18n="btn_signin_submit">Войти в систему</button>
             </form>
 
-            <!-- Форма 2: Регистрация (Sign Up) - скрыта по умолчанию -->
             <form id="form-signup" class="space-y-4 hidden">
                 <div class="form-control">
-                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70">Email / Логин</label>
+                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70" data-i18n="label_email">Email / Логин</label>
                     <label class="input input-bordered flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70"><path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" /><path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" /></svg>
                         <input type="email" id="signup-email" class="grow text-sm" placeholder="new-user@company.com" required />
                     </label>
                 </div>
                 <div class="form-control">
-                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70">Пароль</label>
+                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70" data-i18n="label_password">Пароль</label>
                     <label class="input input-bordered flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70"><path fill-rule="evenodd" d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z" clip-rule="evenodd" /></svg>
-                        <input type="password" id="signup-password" class="grow text-sm" placeholder="минимум 6 символов" required />
+                        <input type="password" id="signup-password" class="grow text-sm" placeholder="минимум 6 символов" data-i18n-placeholder="placeholder_signup_password" required />
                     </label>
                 </div>
                 <div class="form-control">
-                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70">Выбор роли</label>
+                    <label class="label text-xs uppercase tracking-wider font-semibold opacity-70" data-i18n="label_role">Выбор роли</label>
                     <select id="signup-role" class="select select-bordered text-sm w-full">
-                        <option value="user" selected>Сотрудник (User)</option>
-                        <option value="admin">Администратор (Admin)</option>
+                        <option value="user" selected data-i18n="option_role_user">Сотрудник (User)</option>
+                        <option value="admin" data-i18n="option_role_admin">Администратор (Admin)</option>
                     </select>
                 </div>
-                <button type="submit" id="btn-submit-signup" class="btn btn-secondary w-full mt-2">Зарегистрироваться</button>
+                <button type="submit" id="btn-submit-signup" class="btn btn-secondary w-full mt-2" data-i18n="btn_signup_submit">Зарегистрироваться</button>
             </form>
 
-            <!-- Разделитель для быстрого доступа -->
-            <div class="divider text-xs tracking-widest text-base-content/40 my-6 font-bold">БЫСТРЫЙ ВХОД ДЛЯ ТЕСТОВ</div>
+            <div class="divider text-xs tracking-widest text-base-content/40 my-6 font-bold" data-i18n="divider_quick_login">БЫСТРЫЙ ВХОД ДЛЯ ТЕСТОВ</div>
 
-            <!-- Блок Dummy Login (обязательный эндпоинт /dummyLogin) -->
             <div class="grid grid-cols-2 gap-3">
                 <button id="btn-dummy-user" class="btn btn-outline btn-accent text-xs flex flex-col gap-0.5 h-auto py-2.5">
-                    <span class="font-bold">Вход как User</span>
-                    <span class="text-[10px] opacity-60 font-normal">Тестовый сотрудник</span>
+                    <span class="font-bold" data-i18n="btn_dummy_user_title">Вход как User</span>
+                    <span class="text-[10px] opacity-60 font-normal" data-i18n="btn_dummy_user_sub">Тестовый сотрудник</span>
                 </button>
                 <button id="btn-dummy-admin" class="btn btn-outline btn-neutral text-xs flex flex-col gap-0.5 h-auto py-2.5">
-                    <span class="font-bold">Вход как Admin</span>
-                    <span class="text-[10px] opacity-60 font-normal">Тестовый админ</span>
+                    <span class="font-bold" data-i18n="btn_dummy_admin_title">Вход как Admin</span>
+                    <span class="text-[10px] opacity-60 font-normal" data-i18n="btn_dummy_admin_sub">Тестовый админ</span>
                 </button>
             </div>
-            <p class="text-[11px] text-center text-base-content/40 mt-3 italic">Использует детерминированные UUID бэкенда для мгновенной проверки логики без ввода паролей.</p>
+            <p class="text-[11px] text-center text-base-content/40 mt-3 italic" data-i18n="dummy_login_note">Использует детерминированные UUID бэкенда для мгновенной проверки логики без ввода паролей.</p>
         </div>
     </div>
 </div>
 
 
-<!-- ================================================================= -->
-<!-- ЭКРАН 2: ИНТЕРФЕЙС ПОЛЬЗОВАТЕЛЯ (Панель бронирования)               -->
-<!-- ================================================================= -->
 <div id="screen-user" class="hidden flex flex-col min-h-screen">
-    <!-- Верхняя панель (Navbar) -->
     <header class="navbar bg-base-100 border-b border-base-200 px-4 md:px-8 sticky top-0 z-40 shadow-sm">
         <div class="flex-1 gap-2">
             <span class="p-2 bg-accent/10 text-accent rounded-lg font-black text-lg tracking-wider">MR</span>
-            <span class="text-lg font-bold tracking-tight">Meeting Rooms API <span class="badge badge-accent badge-sm font-semibold">Сотрудник</span></span>
+            <span class="text-lg font-bold tracking-tight">Meeting Rooms API <span class="badge badge-accent badge-sm font-semibold" data-i18n="badge_employee">Сотрудник</span></span>
         </div>
         <div class="flex-none gap-4">
             <div class="flex flex-col items-end text-right hidden sm:flex">
@@ -144,275 +127,249 @@
                     <span>U</span>
                 </div>
             </button>
-            <button class="btn btn-sm btn-outline btn-error px-4 btn-logout">Выйти</button>
+            <button class="btn btn-sm btn-outline btn-error px-4 btn-logout" data-i18n="btn_logout">Выйти</button>
         </div>
     </header>
 
-    <!-- Главный рабочий контейнер (Трёхпанельная структура) -->
     <main class="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 p-4 md:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
-
-        <!-- Левая панель: Список переговорок -->
         <section class="xl:col-span-3 flex flex-col bg-base-100 rounded-xl border border-base-200 p-4 shadow-sm h-[calc(100vh-140px)] min-h-[500px]">
             <div class="mb-4">
                 <h2 class="text-base font-bold tracking-tight flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                    Переговорные комнаты
+                    <span data-i18n="rooms_heading">Переговорные комнаты</span>
                 </h2>
-                <p class="text-xs text-base-content/50 mt-0.5">Выберите помещение из доступных</p>
+                <p class="text-xs text-base-content/50 mt-0.5" data-i18n="rooms_subheading">Выберите помещение из доступных</p>
             </div>
 
-            <!-- Прокручиваемый список комнат. Заполняется ТОЛЬКО данными из API (GET /rooms/list) -->
             <div id="user-rooms-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
         </section>
 
-        <!-- Центральная панель: Сетка временных слотов -->
         <section class="xl:col-span-5 flex flex-col bg-base-100 rounded-xl border border-base-200 p-4 shadow-sm h-[calc(100vh-140px)] min-h-[500px]">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
                     <h2 class="text-base font-bold tracking-tight flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Временная сетка
+                        <span data-i18n="slots_heading">Временная сетка</span>
                     </h2>
-                    <p class="text-xs text-base-content/50 mt-0.5">Слоты генерируются автоматически</p>
+                    <p class="text-xs text-base-content/50 mt-0.5" data-i18n="slots_subheading">Слоты генерируются автоматически</p>
                 </div>
-                <!-- Выбор даты (значение устанавливается скриптом на текущую дату) -->
                 <input type="date" id="slots-date-picker" class="input input-sm input-bordered font-semibold text-sm max-w-[160px]" min=""/>
             </div>
 
-            <!-- Сетка слотов. Заполняется ТОЛЬКО данными из API (GET /rooms/{id}/slots/list) -->
             <div class="flex-1 overflow-y-auto pr-1">
                 <div id="slots-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
 
-                <!-- Сообщение при отсутствии слотов -->
                 <div id="slots-empty-state" class="hidden flex flex-col items-center justify-center h-full text-center p-6">
-                    <p class="text-sm font-medium text-base-content/60">Нет доступных слотов на выбранную дату. Возможно, у комнаты нет расписания или все слоты заняты.</p>
+                    <p class="text-sm font-medium text-base-content/60" data-i18n="slots_empty_message">Нет доступных слотов на выбранную дату. Возможно, у комнаты нет расписания или все слоты заняты.</p>
                 </div>
             </div>
 
-            <!-- Контекстная кнопка действия снизу сетки -->
             <div class="mt-4 pt-4 border-t border-base-200">
-                <button id="btn-open-booking-modal" class="btn btn-accent w-full" onclick="booking_modal.showModal()" disabled>
+                <button id="btn-open-booking-modal" class="btn btn-accent w-full" onclick="booking_modal.showModal()" disabled data-i18n="slots_select_prompt">
                     Выберите временной слот
                 </button>
             </div>
         </section>
 
-        <!-- Правая панель: Мои активные бронирования -->
         <section class="xl:col-span-4 flex flex-col bg-base-100 rounded-xl border border-base-200 p-4 shadow-sm h-[calc(100vh-140px)] min-h-[500px]">
             <div class="mb-4">
                 <h2 class="text-base font-bold tracking-tight flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-                    Мои бронирования
+                    <span data-i18n="my_bookings_heading">Мои бронирования</span>
                 </h2>
-                <p class="text-xs text-base-content/50 mt-0.5">Ваши текущие запланированные встречи</p>
+                <p class="text-xs text-base-content/50 mt-0.5" data-i18n="my_bookings_subheading">Ваши текущие запланированные встречи</p>
             </div>
 
-            <!-- Прокручиваемый список личных броней. Заполняется ТОЛЬКО данными из API (GET /bookings/my) -->
             <div id="user-bookings-list" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
         </section>
     </main>
 
-    <!-- Модальное окно подтверждения бронирования (DaisyUI Modal) -->
     <dialog id="booking_modal" class="modal modal-bottom sm:modal-middle">
         <div class="modal-box border border-base-200">
             <h3 class="font-bold text-lg flex items-center gap-2 text-accent">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-                Подтверждение бронирования
+                <span data-i18n="modal_title">Подтверждение бронирования</span>
             </h3>
             <div class="py-4 space-y-2">
-                <p class="text-sm">Вы собираетесь забронировать временной интервал в системе.</p>
+                <p class="text-sm" data-i18n="modal_intro">Вы собираетесь забронировать временной интервал в системе.</p>
                 <div class="bg-base-200 p-3 rounded-xl font-mono text-xs space-y-1">
-                    <div><strong>Комната:</strong> <span id="modal-room-name">—</span></div>
-                    <div><strong>Дата:</strong> <span id="modal-booking-date">—</span></div>
-                    <div><strong>Время:</strong> <span id="modal-booking-time">—</span></div>
+                    <div><strong data-i18n="modal_room_label">Комната:</strong> <span id="modal-room-name">—</span></div>
+                    <div><strong data-i18n="modal_date_label">Дата:</strong> <span id="modal-booking-date">—</span></div>
+                    <div><strong data-i18n="modal_time_label">Время:</strong> <span id="modal-booking-time">—</span></div>
                 </div>
 
-                <!-- Опция: Интеграция с Conference Service -->
                 <div class="form-control pt-2">
                     <label class="label cursor-pointer justify-start gap-3 p-0">
                         <input type="checkbox" id="modal-create-conf" class="checkbox checkbox-accent checkbox-sm" checked />
-                        <span class="label-text font-medium">Создать онлайн-встречу (Conference Link)</span>
+                        <span class="label-text font-medium" data-i18n="modal_create_conf">Создать онлайн-встречу (Conference Link)</span>
                     </label>
-                    <p class="text-[11px] text-base-content/50 mt-1 pl-7">Если внешний сервис ссылок недоступен, бронирование будет автоматически отменено базой.</p>
+                    <p class="text-[11px] text-base-content/50 mt-1 pl-7" data-i18n="modal_conf_note">Если внешний сервис ссылок недоступен, бронирование будет автоматически отменено базой.</p>
                 </div>
 
-                <!-- Окно ошибки внутри модалки (409-конфликты, слот в прошлом и т.п.) -->
                 <div id="booking-modal-alert" class="alert alert-error text-xs p-3 mt-2 hidden" aria-live="polite"></div>
             </div>
             <div class="modal-action">
-                <button class="btn btn-ghost btn-sm" onclick="booking_modal.close()">Отмена</button>
-                <button id="btn-confirm-booking" class="btn btn-accent btn-sm px-6">Подтвердить</button>
+                <button class="btn btn-ghost btn-sm" onclick="booking_modal.close()" data-i18n="modal_cancel">Отмена</button>
+                <button id="btn-confirm-booking" class="btn btn-accent btn-sm px-6" data-i18n="modal_confirm">Подтвердить</button>
             </div>
         </div>
     </dialog>
 </div>
 
 
-<!-- ================================================================= -->
-<!-- ЭКРАН 3: ПАНЕЛЬ АДМИНИСТРАТОРА (Управление комнатами и аудит)       -->
-<!-- ================================================================= -->
 <div id="screen-admin" class="hidden flex flex-col min-h-screen">
-    <!-- Верхняя панель  -->
     <header class="navbar bg-base-100 border-b border-base-200 px-4 md:px-8 sticky top-0 z-40 shadow-sm">
         <div class="flex-1 gap-2">
             <span class="p-2 bg-primary/10 text-primary rounded-lg font-black text-lg tracking-wider">MRA</span>
-            <span class="text-lg font-bold tracking-tight">Meeting Rooms API <span class="badge badge-primary badge-sm font-semibold">Администратор</span></span>
+            <span class="text-lg font-bold tracking-tight">Meeting Rooms API <span class="badge badge-primary badge-sm font-semibold" data-i18n="badge_admin">Администратор</span></span>
         </div>
         <div class="flex-none gap-4">
             <div class="flex flex-col items-end text-right hidden sm:flex">
                 <span id="admin-display-email" class="text-sm font-medium">—</span>
-                <span id="admin-display-id" class="text-[10px] opacity-50 font-mono">Права: Полный доступ</span>
+                <span id="admin-display-id" class="text-[10px] opacity-50 font-mono" data-i18n="rights_full_access">Права: Полный доступ</span>
             </div>
             <button class="btn btn-ghost btn-circle avatar placeholder">
                 <div class="bg-neutral text-neutral-content rounded-full w-10">
                     <span>A</span>
                 </div>
             </button>
-            <button class="btn btn-sm btn-outline btn-error px-4 btn-logout">Выйти</button>
+            <button class="btn btn-sm btn-outline btn-error px-4 btn-logout" data-i18n="btn_logout">Выйти</button>
         </div>
     </header>
 
-    <!-- Рабочая область админа с переключением табов -->
     <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-[1400px] w-full mx-auto space-y-6">
 
-        <!-- Табы админ-панели -->
         <div role="tablist" class="tabs tabs-lifted tabs-lg w-full max-w-md">
-            <button id="tab-manage-btn" class="tab tab-active font-bold text-sm" onclick="switchAdminTab('manage')">Управление ресурсами</button>
-            <button id="tab-log-btn" class="tab font-bold text-sm" onclick="switchAdminTab('log')">Журнал всех броней</button>
+            <button id="tab-manage-btn" class="tab tab-active font-bold text-sm" onclick="switchAdminTab('manage')" data-i18n="tab_manage">Управление ресурсами</button>
+            <button id="tab-log-btn" class="tab font-bold text-sm" onclick="switchAdminTab('log')" data-i18n="tab_log">Журнал всех броней</button>
         </div>
 
-        <!-- СЕКЦИЯ 1: УПРАВЛЕНИЕ РЕСУРСАМИ (Формы создания) -->
         <div id="admin-sec-manage" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- Карточка: Создать комнату -->
             <div class="card bg-base-100 border border-base-200 shadow-sm">
                 <div class="card-body p-6">
                     <h2 class="card-title text-base font-bold tracking-tight mb-4 flex items-center gap-2">
                         <span class="w-2 h-5 bg-primary rounded-full"></span>
-                        Создать новую переговорную
+                        <span data-i18n="create_room_title">Создать новую переговорную</span>
                     </h2>
                     <form id="form-create-room" class="space-y-4">
                         <div class="form-control">
-                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70">Название комнаты</label>
-                            <input type="text" id="admin-room-name" class="input input-bordered text-sm" placeholder="Например: Переговорка 147" required />
+                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70" data-i18n="label_room_name">Название комнаты</label>
+                            <input type="text" id="admin-room-name" class="input input-bordered text-sm" placeholder="Например: Переговорка 147" data-i18n-placeholder="placeholder_room_name" required />
                         </div>
                         <div class="form-control">
-                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70">Вместимость (чел.)</label>
+                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70" data-i18n="label_room_capacity">Вместимость (чел.)</label>
                             <input type="number" id="admin-room-capacity" class="input input-bordered text-sm" placeholder="10" min="1" />
                         </div>
                         <div class="form-control">
-                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70">Описание / Оборудование</label>
-                            <textarea id="admin-room-desc" class="textarea textarea-bordered text-sm h-20" placeholder="Проектор, Смарт-ТВ, маркерная доска..."></textarea>
+                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70" data-i18n="label_room_desc">Описание / Оборудование</label>
+                            <textarea id="admin-room-desc" class="textarea textarea-bordered text-sm h-20" placeholder="Проектор, Смарт-ТВ, маркерная доска..." data-i18n-placeholder="placeholder_room_desc"></textarea>
                         </div>
-                        <button type="submit" id="btn-create-room" class="btn btn-primary w-full">Добавить комнату</button>
+                        <button type="submit" id="btn-create-room" class="btn btn-primary w-full" data-i18n="btn_add_room">Добавить комнату</button>
                     </form>
                 </div>
             </div>
 
-            <!-- Карточка: Задать расписание -->
             <div class="card bg-base-100 border border-base-200 shadow-sm">
                 <div class="card-body p-6">
                     <h2 class="card-title text-base font-bold tracking-tight mb-4 flex items-center gap-2">
                         <span class="w-2 h-5 bg-primary rounded-full"></span>
-                        Настройка доступности (Расписание)
+                        <span data-i18n="schedule_title">Настройка доступности (Расписание)</span>
                     </h2>
 
                     <div class="alert alert-warning text-xs py-2 mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        <span>Внимание! После создания расписание нельзя изменить. Длительность слота жестко равна 30 минутам.</span>
+                        <span data-i18n="schedule_warning">Внимание! После создания расписание нельзя изменить. Длительность слота жестко равна 30 минутам.</span>
                     </div>
 
                     <form id="form-create-schedule" class="space-y-4">
                         <div class="form-control">
-                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70">Выберите комнату</label>
+                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70" data-i18n="label_select_room">Выберите комнату</label>
                             <select id="admin-sched-room-id" class="select select-bordered text-sm w-full" required>
-                                <option value="" disabled selected>Загрузка списка переговорок...</option>
+                                <option value="" disabled selected data-i18n="option_loading_rooms">Загрузка списка переговорок...</option>
                             </select>
                         </div>
 
                         <div class="form-control">
-                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70 mb-1">Дни недели доступности</label>
+                            <label class="label text-xs uppercase font-bold tracking-wide opacity-70 mb-1" data-i18n="label_days_of_week">Дни недели доступности</label>
                             <div class="grid grid-cols-4 gap-2 bg-base-200 p-3 rounded-xl border border-base-300">
                                 <label class="label cursor-pointer justify-start gap-2 p-1">
                                     <input type="checkbox" name="days" value="1" class="checkbox checkbox-primary checkbox-xs" checked />
-                                    <span class="label-text text-xs">Пн</span>
+                                    <span class="label-text text-xs" data-i18n="day_mon">Пн</span>
                                 </label>
                                 <label class="label cursor-pointer justify-start gap-2 p-1">
                                     <input type="checkbox" name="days" value="2" class="checkbox checkbox-primary checkbox-xs" checked />
-                                    <span class="label-text text-xs">Вт</span>
+                                    <span class="label-text text-xs" data-i18n="day_tue">Вт</span>
                                 </label>
                                 <label class="label cursor-pointer justify-start gap-2 p-1">
                                     <input type="checkbox" name="days" value="3" class="checkbox checkbox-primary checkbox-xs" checked />
-                                    <span class="label-text text-xs">Ср</span>
+                                    <span class="label-text text-xs" data-i18n="day_wed">Ср</span>
                                 </label>
                                 <label class="label cursor-pointer justify-start gap-2 p-1">
                                     <input type="checkbox" name="days" value="4" class="checkbox checkbox-primary checkbox-xs" checked />
-                                    <span class="label-text text-xs">Чт</span>
+                                    <span class="label-text text-xs" data-i18n="day_thu">Чт</span>
                                 </label>
                                 <label class="label cursor-pointer justify-start gap-2 p-1">
                                     <input type="checkbox" name="days" value="5" class="checkbox checkbox-primary checkbox-xs" checked />
-                                    <span class="label-text text-xs">Пт</span>
+                                    <span class="label-text text-xs" data-i18n="day_fri">Пт</span>
                                 </label>
                                 <label class="label cursor-pointer justify-start gap-2 p-1">
                                     <input type="checkbox" name="days" value="6" class="checkbox checkbox-primary checkbox-xs" />
-                                    <span class="label-text text-xs">Сб</span>
+                                    <span class="label-text text-xs" data-i18n="day_sat">Сб</span>
                                 </label>
                                 <label class="label cursor-pointer justify-start gap-2 p-1">
                                     <input type="checkbox" name="days" value="7" class="checkbox checkbox-primary checkbox-xs" />
-                                    <span class="label-text text-xs">Вс</span>
+                                    <span class="label-text text-xs" data-i18n="day_sun">Вс</span>
                                 </label>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="form-control">
-                                <label class="label text-xs uppercase font-bold tracking-wide opacity-70">Начало работы</label>
+                                <label class="label text-xs uppercase font-bold tracking-wide opacity-70" data-i18n="label_work_start">Начало работы</label>
                                 <input type="time" id="admin-sched-start" class="input input-bordered text-sm font-mono" value="09:00" step="1800" required />
                             </div>
                             <div class="form-control">
-                                <label class="label text-xs uppercase font-bold tracking-wide opacity-70">Конец работы</label>
+                                <label class="label text-xs uppercase font-bold tracking-wide opacity-70" data-i18n="label_work_end">Конец работы</label>
                                 <input type="time" id="admin-sched-end" class="input input-bordered text-sm font-mono" value="18:00" step="1800" required />
                             </div>
                         </div>
 
-                        <button type="submit" id="btn-create-schedule" class="btn btn-outline btn-primary w-full">Активировать временную сетку</button>
+                        <button type="submit" id="btn-create-schedule" class="btn btn-outline btn-primary w-full" data-i18n="btn_activate_schedule">Активировать временную сетку</button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- СЕКЦИЯ 2: ЖУРНАЛ ВСЕХ БРОНЕЙ (Таблица логов) - скрыта по умолчанию -->
         <div id="admin-sec-log" class="card bg-base-100 border border-base-200 shadow-sm hidden">
             <div class="card-body p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h2 class="text-base font-bold tracking-tight">Логи бронирования всей компании</h2>
-                        <p class="text-xs text-base-content/50">Полный список операций с поддержкой серверной пагинации</p>
+                        <h2 class="text-base font-bold tracking-tight" data-i18n="log_heading">Логи бронирования всей компании</h2>
+                        <p class="text-xs text-base-content/50" data-i18n="log_subheading">Полный список операций с поддержкой серверной пагинации</p>
                     </div>
                 </div>
 
-                <!-- Таблица броней. Заполняется ТОЛЬКО данными из API (GET /bookings/list) -->
                 <div class="overflow-x-auto w-full border border-base-200 rounded-xl">
                     <table class="table table-sm table-zebra w-full text-xs">
                         <thead>
                         <tr class="text-[10px] uppercase tracking-wider">
-                            <th>ID брони</th>
-                            <th>Слот</th>
-                            <th>Пользователь</th>
-                            <th>Создано (UTC)</th>
-                            <th>Статус</th>
+                            <th data-i18n="th_booking_id">ID брони</th>
+                            <th data-i18n="th_slot">Слот</th>
+                            <th data-i18n="th_user">Пользователь</th>
+                            <th data-i18n="th_created">Создано (UTC)</th>
+                            <th data-i18n="th_status">Статус</th>
                         </tr>
                         </thead>
                         <tbody id="admin-bookings-table-body"></tbody>
                     </table>
                 </div>
 
-                <!-- Пагинация (Pagination) -->
                 <div class="flex justify-center mt-4">
                     <div class="join">
-                        <button id="btn-log-prev" class="join-item btn btn-sm btn-outline">« Назад</button>
+                        <button id="btn-log-prev" class="join-item btn btn-sm btn-outline" data-i18n="btn_page_prev">« Назад</button>
                         <button id="btn-log-page" class="join-item btn btn-sm btn-active font-mono">Страница 1</button>
-                        <button id="btn-log-next" class="join-item btn btn-sm btn-outline">Вперед »</button>
+                        <button id="btn-log-next" class="join-item btn btn-sm btn-outline" data-i18n="btn_page_next">Вперед »</button>
                     </div>
                 </div>
             </div>
@@ -421,10 +378,6 @@
 </div>
 
 
-<!-- ================================================================= -->
-<!-- Тулбар разработчика. Кнопки ролей выполняют НАСТОЯЩИЙ /dummyLogin,   -->
-<!-- кнопка Auth выполняет разлогин. Несанкционированного доступа нет.    -->
-<!-- ================================================================= -->
 <div class="fixed bottom-4 right-4 bg-base-100 p-2 rounded-2xl border-2 border-primary/30 shadow-2xl flex items-center gap-1.5 z-50">
     <span class="text-[10px] font-black tracking-widest text-primary/70 px-2 uppercase">Dev UI Switcher:</span>
     <button class="btn btn-xs btn-neutral" onclick="devLogoutToAuth()">Auth</button>
@@ -432,9 +385,7 @@
     <button class="btn btn-xs btn-primary" onclick="devLoginAs('admin')">Admin Panel</button>
 </div>
 
-<!-- Встроенные UI-скрипты переключения вкладок (чистый UI, без данных) -->
 <script>
-    // Переключение табов авторизации (Вход / Регистрация)
     function switchAuthTab(mode) {
         const btnSignIn = document.getElementById('tab-signin-btn');
         const btnSignUp = document.getElementById('tab-signup-btn');
@@ -475,6 +426,13 @@
     }
 </script>
 <script src="app.js"></script>
+<!-- Переключатель языка интерфейса (RU / EN) -->
+<div id="lang-switcher" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-base-100 p-2 rounded-2xl border-2 border-primary/30 shadow-2xl flex items-center gap-1.5 z-50 select-none">
+    <span class="text-[10px] font-black tracking-widest text-primary/70 px-2 uppercase">Lang:</span>
+    <button id="lang-btn-ru" class="btn btn-xs" onclick="setLang('ru')">RU</button>
+    <button id="lang-btn-en" class="btn btn-xs" onclick="setLang('en')">EN</button>
+</div>
+
 <div id="utc-clock" class="fixed bottom-4 left-4 bg-base-100 p-2 rounded-2xl border-2 border-primary/30 shadow-2xl flex items-center gap-1.5 z-50 select-none">
     <span class="text-[10px] font-black tracking-widest text-primary/70 px-2 uppercase flex items-center gap-2">
         <span class="relative flex h-2 w-2">

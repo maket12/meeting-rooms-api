@@ -34,7 +34,7 @@ type Config struct {
 	// Service
 	HttpPort    int    `env:"HTTP_PORT" envDefault:"8080"`
 	LogLevel    string `env:"LOG_LEVEL" envDefault:"INFO"`
-	Environment string `env:"ENVIRONMENT" envDefault:"development"`
+	Environment string `env:"ENVIRONMENT" envDefault:"production"`
 }
 
 func Load() (*Config, error) {

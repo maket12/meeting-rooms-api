@@ -50,10 +50,14 @@ SELECT
     s.start_time,
     s.end_time
 FROM slots s
-LEFT JOIN bookings b ON s.id = b.slot_id AND b.status = 'active'
+         LEFT JOIN bookings b ON s.id = b.slot_id AND b.status = 'active'
 WHERE s.room_id = $1
-    AND s.start_time::date = $2::date
-    AND b.id IS NULL
+  AND s.start_time::date = $2::date
+  AND b.id IS NULL
+  AND (
+    $2::date > CURRENT_DATE
+        OR (s.start_time > NOW())
+    )
 ORDER BY s.start_time
 `
 
