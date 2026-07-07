@@ -1,6 +1,10 @@
 # Meeting Rooms API
 
 <p align="center">
+  <strong>🇬🇧 English</strong> • <a href="README.ru.md">🇷🇺 Русский</a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go" alt="Go" />
   <img src="https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker" alt="Docker" />

@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-var startTime = time.Now().UTC()
+var startTime = time.Now().Add(time.Hour).UTC()
 
 type SlotRepoSuite struct {
 	BaseRepoSuite
