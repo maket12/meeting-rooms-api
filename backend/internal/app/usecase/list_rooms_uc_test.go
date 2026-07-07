@@ -3,11 +3,12 @@ package usecase_test
 import (
 	"context"
 	"errors"
+	"testing"
+
 	ucerrs "github.com/maket12/meeting-rooms-api/internal/app/errs"
 	"github.com/maket12/meeting-rooms-api/internal/app/usecase"
 	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 	"github.com/maket12/meeting-rooms-api/internal/domain/port/mocks"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

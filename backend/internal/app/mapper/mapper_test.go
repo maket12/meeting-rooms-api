@@ -1,12 +1,13 @@
 package mapper_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/maket12/meeting-rooms-api/internal/app/dto"
 	"github.com/maket12/meeting-rooms-api/internal/app/mapper"
 	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 	"github.com/maket12/meeting-rooms-api/pkg/utils"
-	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
