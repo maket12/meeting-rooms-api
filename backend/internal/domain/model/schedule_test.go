@@ -2,10 +2,11 @@ package model_test
 
 import (
 	"fmt"
-	"github.com/maket12/meeting-rooms-api/internal/domain/model"
-	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
 	"testing"
 	"time"
+
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
