@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/maket12/meeting-rooms-api/migrations"
-	pkgpostgres "github.com/maket12/meeting-rooms-api/pkg/postgres"
 	"strings"
 	"time"
+
+	"github.com/maket12/meeting-rooms-api/migrations"
+	pkgpostgres "github.com/maket12/meeting-rooms-api/pkg/postgres"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/source/iofs"

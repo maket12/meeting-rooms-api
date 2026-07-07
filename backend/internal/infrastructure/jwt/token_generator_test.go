@@ -1,9 +1,10 @@
 package jwt_test
 
 import (
-	"github.com/maket12/meeting-rooms-api/internal/infrastructure/jwt"
 	"testing"
 	"time"
+
+	"github.com/maket12/meeting-rooms-api/internal/infrastructure/jwt"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
