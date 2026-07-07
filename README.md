@@ -6,6 +6,9 @@
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker" alt="Docker" />
   <img src="https://img.shields.io/badge/Tests-Unit%20%2B%20Integration%20%2B%20E2E-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions" alt="CI/CD" />
+  <img src="https://img.shields.io/badge/golangci--lint-enabled-4F4D7A?logo=golangci" alt="golangci-lint" />
+  <img src="https://img.shields.io/badge/mockery-generated%20mocks-6C4AB6?logo=go" alt="mockery" />
+  <img src="https://img.shields.io/badge/sqlc-generated%20queries-00ADD8?logo=sqlc" alt="sqlc" />
 </p>
 
 <p align="center">
@@ -42,6 +45,7 @@ This repository is designed to look like a serious portfolio project rather than
 - database migrations and a PostgreSQL-backed persistence layer;
 - OpenAPI documentation and Swagger UI;
 - automated unit, integration, and end-to-end tests;
+- code generation with sqlc, mockery, and golangci-lint to keep the backend consistent and maintainable;
 - a lightweight frontend to showcase the API in action.
 
 ---
@@ -89,36 +93,34 @@ The project follows a layered structure built around clear boundaries:
 - domain layer for business rules and entities;
 - infrastructure layer for JWT, password hashing, and persistence integration.
 
-Additional implementation choices include lazy slot generation, deterministic UUID usage for slot identity, and transactional booking updates.
+Additional implementation choices include lazy slot generation, deterministic UUID usage for slot identity, transactional booking updates, and a few algorithmic decisions that make the system feel closer to production: slot generation is done lazily to avoid bloating the database, time slots are constrained to a 30-minute grid for cleaner scheduling, and cancellation is handled idempotently so repeated calls remain safe and predictable.
 
 ---
 
 ## 🎬 Demo Walkthroughs
 
-These short video clips are included to make the project feel more complete and easier to understand during portfolio review.
-
 ### 1. Registration and login
 
 <video controls width="100%" autoplay loop muted playsinline>
-  <source src="docs/assets/registration-and-login.mp4" type="video/mp4" />
+  <source src="https://raw.githubusercontent.com/maket12/meeting-rooms-api/main/docs/assets/registration-and-login.mp4" type="video/mp4" />
 </video>
 
 ### 2. Admin room and schedule management
 
 <video controls width="100%" autoplay loop muted playsinline>
-  <source src="docs/assets/admin-room-schedule.mp4" type="video/mp4" />
+  <source src="https://raw.githubusercontent.com/maket12/meeting-rooms-api/main/docs/assets/admin-room-schedule.mp4" type="video/mp4" />
 </video>
 
 ### 3. Admin booking audit flow
 
 <video controls width="100%" autoplay loop muted playsinline>
-  <source src="docs/assets/admin-bookings.mp4" type="video/mp4" />
+  <source src="https://raw.githubusercontent.com/maket12/meeting-rooms-api/main/docs/assets/admin-bookings.mp4" type="video/mp4" />
 </video>
 
 ### 4. User booking experience
 
 <video controls width="100%" autoplay loop muted playsinline>
-  <source src="docs/assets/user-booking.mp4" type="video/mp4" />
+  <source src="https://raw.githubusercontent.com/maket12/meeting-rooms-api/main/docs/assets/user-booking.mp4" type="video/mp4" />
 </video>
 
 ---
@@ -273,6 +275,9 @@ docker compose up --build
 - Docker Compose
 - JWT
 - golang-migrate
+- sqlc for generated persistence code
+- mockery for generated mocks in tests
+- golangci-lint for static analysis and code quality
 - OpenAPI / Swagger
 - GitHub Actions
 
@@ -287,6 +292,7 @@ This project is built with a pragmatic, production-minded toolchain and a struct
 - PostgreSQL migrations managed with golang-migrate in [backend/migrations](backend/migrations);
 - sqlc-based query code generation configured in [backend/sqlc.yaml](backend/sqlc.yaml) and generated under [backend/internal/adapter/out/postgres/sqlc](backend/internal/adapter/out/postgres/sqlc);
 - mockery-generated mocks for dependency isolation and unit testing in [backend/internal/domain/port/mocks](backend/internal/domain/port/mocks);
-- golangci-lint integrated into CI through [backend/.golangci.yml](backend/.golangci.yml) and [.github/workflows/backend-workflow.yml](.github/workflows/backend-workflow.yml).
+- golangci-lint integrated into CI through [backend/.golangci.yml](backend/.golangci.yml) and [.github/workflows/backend-workflow.yml](.github/workflows/backend-workflow.yml);
+- a few deliberate algorithmic choices that make the domain behavior more realistic: slot generation is lazy to avoid filling the database with millions of empty rows, time slots follow a strict 30-minute grid, and booking cancellation is idempotent so repeated requests stay safe and predictable.
 
 Taken together, these choices make the repository feel much closer to a real backend service than a toy exercise.
