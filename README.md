@@ -101,27 +101,19 @@ Additional implementation choices include lazy slot generation, deterministic UU
 
 ### 1. Registration and login
 
-<video controls width="100%" autoplay loop muted playsinline>
-  <source src="https://raw.githubusercontent.com/maket12/meeting-rooms-api/main/docs/assets/registration-and-login.mp4" type="video/mp4" />
-</video>
+![Registration and Login](docs/assets/gifs/registration-and-login.gif)
 
 ### 2. Admin room and schedule management
 
-<video controls width="100%" autoplay loop muted playsinline>
-  <source src="https://raw.githubusercontent.com/maket12/meeting-rooms-api/main/docs/assets/admin-room-schedule.mp4" type="video/mp4" />
-</video>
+![Admin Room and Schedule](docs/assets/gifs/admin-room-schedule.gif)
 
 ### 3. Admin booking audit flow
 
-<video controls width="100%" autoplay loop muted playsinline>
-  <source src="https://raw.githubusercontent.com/maket12/meeting-rooms-api/main/docs/assets/admin-bookings.mp4" type="video/mp4" />
-</video>
+![Admin Bookings](docs/assets/gifs/admin-bookings.gif)
 
 ### 4. User booking experience
 
-<video controls width="100%" autoplay loop muted playsinline>
-  <source src="https://raw.githubusercontent.com/maket12/meeting-rooms-api/main/docs/assets/user-booking.mp4" type="video/mp4" />
-</video>
+![User Booking](docs/assets/gifs/user-booking.gif)
 
 ---
 
