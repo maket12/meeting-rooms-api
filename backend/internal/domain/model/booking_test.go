@@ -1,9 +1,9 @@
 package model_test
 
 import (
-	"backend/internal/domain/model"
-	pkgerrs "backend/pkg/errs"
-	"backend/pkg/utils"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
+	"github.com/maket12/meeting-rooms-api/pkg/utils"
 	"testing"
 	"time"
 

@@ -1,7 +1,7 @@
 package password_test
 
 import (
-	"backend/internal/infrastructure/password"
+	"github.com/maket12/meeting-rooms-api/internal/infrastructure/password"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

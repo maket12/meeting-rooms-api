@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	sqlc2 "backend/internal/adapter/out/postgres/sqlc"
-	"backend/internal/domain/model"
+	sqlc2 "github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )

@@ -1,15 +1,16 @@
 package http
 
 import (
-	httpdto "backend/internal/adapter/in/http/dto"
-	"backend/internal/adapter/in/http/mapper"
-	ucdto "backend/internal/app/dto"
-	"backend/internal/app/usecase"
-	pkgerrs "backend/pkg/errs"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strconv"
+
+	httpdto "github.com/maket12/meeting-rooms-api/internal/adapter/in/http/dto"
+	"github.com/maket12/meeting-rooms-api/internal/adapter/in/http/mapper"
+	ucdto "github.com/maket12/meeting-rooms-api/internal/app/dto"
+	"github.com/maket12/meeting-rooms-api/internal/app/usecase"
+	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
 
 	"github.com/google/uuid"
 )

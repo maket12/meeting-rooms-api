@@ -1,10 +1,11 @@
 package conference_test
 
 import (
-	"backend/internal/adapter/out/conference"
 	"context"
 	"strings"
 	"testing"
+
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/conference"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

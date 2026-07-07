@@ -1,4 +1,4 @@
-module backend
+module github.com/maket12/meeting-rooms-api
 
 go 1.26.2
 
@@ -14,7 +14,6 @@ require (
 	github.com/testcontainers/testcontainers-go v0.43.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
 	golang.org/x/crypto v0.51.0
-	golang.org/x/time v0.12.0
 )
 
 require (

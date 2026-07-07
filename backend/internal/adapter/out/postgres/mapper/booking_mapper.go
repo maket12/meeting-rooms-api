@@ -1,13 +1,13 @@
 package mapper
 
 import (
-	sqlc2 "backend/internal/adapter/out/postgres/sqlc"
-	"backend/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func MapBookingToSQLCCreate(booking *model.Booking) sqlc2.CreateBookingParams {
+func MapBookingToSQLCCreate(booking *model.Booking) sqlc.CreateBookingParams {
 	var confLink pgtype.Text
 	if booking.ConferenceLink() != nil {
 		confLink = pgtype.Text{
@@ -16,7 +16,7 @@ func MapBookingToSQLCCreate(booking *model.Booking) sqlc2.CreateBookingParams {
 		}
 	}
 
-	return sqlc2.CreateBookingParams{
+	return sqlc.CreateBookingParams{
 		ID: pgtype.UUID{
 			Bytes: booking.ID(),
 			Valid: true,
@@ -39,7 +39,7 @@ func MapBookingToSQLCCreate(booking *model.Booking) sqlc2.CreateBookingParams {
 	}
 }
 
-func MapSQLCToBooking(rawBooking sqlc2.Booking) *model.Booking {
+func MapSQLCToBooking(rawBooking sqlc.Booking) *model.Booking {
 	var confLink *string
 	if rawBooking.ConferenceLink.Valid {
 		confLink = &rawBooking.ConferenceLink.String
@@ -55,7 +55,7 @@ func MapSQLCToBooking(rawBooking sqlc2.Booking) *model.Booking {
 	)
 }
 
-func MapSQLCToBookingsList(rawBookings []sqlc2.Booking) []*model.Booking {
+func MapSQLCToBookingsList(rawBookings []sqlc.Booking) []*model.Booking {
 	bookings := make([]*model.Booking, len(rawBookings))
 	for i := range bookings {
 		mapped := MapSQLCToBooking(rawBookings[i])
@@ -64,7 +64,7 @@ func MapSQLCToBookingsList(rawBookings []sqlc2.Booking) []*model.Booking {
 	return bookings
 }
 
-func MapSQLCAllToBookingsList(raw []sqlc2.ListAllBookingsRow) ([]*model.Booking, int64) {
+func MapSQLCAllToBookingsList(raw []sqlc.ListAllBookingsRow) ([]*model.Booking, int64) {
 	if len(raw) == 0 {
 		return []*model.Booking{}, 0
 	}

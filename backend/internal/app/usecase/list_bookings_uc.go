@@ -1,12 +1,12 @@
 package usecase
 
 import (
-	"backend/internal/app/dto"
-	ucerrs "backend/internal/app/errs"
-	"backend/internal/app/mapper"
-	"backend/internal/domain/port"
 	"context"
 	"errors"
+	"github.com/maket12/meeting-rooms-api/internal/app/dto"
+	ucerrs "github.com/maket12/meeting-rooms-api/internal/app/errs"
+	"github.com/maket12/meeting-rooms-api/internal/app/mapper"
+	"github.com/maket12/meeting-rooms-api/internal/domain/port"
 )
 
 type ListBookingsUC struct{ booking port.BookingRepository }

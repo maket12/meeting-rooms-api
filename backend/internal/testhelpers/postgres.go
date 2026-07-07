@@ -1,11 +1,11 @@
 package testhelpers
 
 import (
-	"backend/migrations"
-	pkgpostgres "backend/pkg/postgres"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/maket12/meeting-rooms-api/migrations"
+	pkgpostgres "github.com/maket12/meeting-rooms-api/pkg/postgres"
 	"strings"
 	"time"
 

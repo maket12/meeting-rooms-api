@@ -1,13 +1,13 @@
 package postgres
 
 import (
-	"backend/internal/adapter/out/postgres/mapper"
-	sqlc2 "backend/internal/adapter/out/postgres/sqlc"
-	"backend/internal/domain/model"
-	pkgerrs "backend/pkg/errs"
-	pkgpostgres "backend/pkg/postgres"
 	"context"
 	"errors"
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/mapper"
+	sqlc2 "github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
+	pkgpostgres "github.com/maket12/meeting-rooms-api/pkg/postgres"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/jackc/pgx/v5/pgxpool"

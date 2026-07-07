@@ -4,14 +4,14 @@ RUN apk add --no-cache git
 
 WORKDIR /app
 
-COPY ["backend/go.mod", "backend/go.sum", "./"]
+COPY ["github.com/maket12/meeting-rooms-api/go.mod", "github.com/maket12/meeting-rooms-api/go.sum", "./"]
 
 ENV GOPROXY=https://proxy.golang.org,https://goproxy.io,https://mirror.yandex.ru/mirrors/go-proxy/,direct
 
 RUN go mod download
 
 COPY backend/pkg ./pkg
-COPY "backend/cmd" "./cmd"
+COPY "github.com/maket12/meeting-rooms-api/cmd" "./cmd"
 COPY backend/internal ./internal
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o meeting-rooms-api ./cmd/app/main.go

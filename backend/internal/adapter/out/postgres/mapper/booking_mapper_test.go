@@ -1,12 +1,13 @@
 package mapper_test
 
 import (
-	"backend/internal/adapter/out/postgres/mapper"
-	sqlc2 "backend/internal/adapter/out/postgres/sqlc"
-	"backend/internal/domain/model"
-	"backend/pkg/utils"
 	"testing"
 	"time"
+
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/mapper"
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/pkg/utils"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -36,7 +37,7 @@ func TestMapBookingToSQLCCreate(t *testing.T) {
 }
 
 func TestMapSQLCToBooking(t *testing.T) {
-	raw := sqlc2.Booking{
+	raw := sqlc.Booking{
 		ID: pgtype.UUID{
 			Bytes: uuid.New(),
 			Valid: true,
@@ -72,7 +73,7 @@ func TestMapSQLCToBooking(t *testing.T) {
 }
 
 func TestMapSQLCToBookingsList(t *testing.T) {
-	raw := []sqlc2.Booking{
+	raw := []sqlc.Booking{
 		{
 			ID:        pgtype.UUID{Bytes: uuid.New(), Valid: true},
 			SlotID:    pgtype.UUID{Bytes: uuid.New(), Valid: true},
@@ -100,7 +101,7 @@ func TestMapSQLCToBookingsList(t *testing.T) {
 
 func TestMapSQLCAllToBookingsList(t *testing.T) {
 	t.Run("success_mapping", func(t *testing.T) {
-		raw := []sqlc2.ListAllBookingsRow{
+		raw := []sqlc.ListAllBookingsRow{
 			{
 				ID:             pgtype.UUID{Bytes: uuid.New(), Valid: true},
 				SlotID:         pgtype.UUID{Bytes: uuid.New(), Valid: true},
@@ -131,7 +132,7 @@ func TestMapSQLCAllToBookingsList(t *testing.T) {
 	})
 
 	t.Run("empty_input", func(t *testing.T) {
-		mapped, total := mapper.MapSQLCAllToBookingsList([]sqlc2.ListAllBookingsRow{})
+		mapped, total := mapper.MapSQLCAllToBookingsList([]sqlc.ListAllBookingsRow{})
 
 		assert.Empty(t, mapped)
 		assert.Equal(t, int64(0), total)

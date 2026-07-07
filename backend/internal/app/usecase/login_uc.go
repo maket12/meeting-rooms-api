@@ -1,12 +1,12 @@
 package usecase
 
 import (
-	"backend/internal/app/dto"
-	ucerrs "backend/internal/app/errs"
-	"backend/internal/domain/port"
-	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
+	"github.com/maket12/meeting-rooms-api/internal/app/dto"
+	ucerrs "github.com/maket12/meeting-rooms-api/internal/app/errs"
+	"github.com/maket12/meeting-rooms-api/internal/domain/port"
+	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
 )
 
 type LoginUC struct {

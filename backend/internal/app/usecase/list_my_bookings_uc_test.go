@@ -1,12 +1,12 @@
 package usecase_test
 
 import (
-	ucerrs "backend/internal/app/errs"
-	"backend/internal/app/usecase"
-	"backend/internal/domain/model"
-	"backend/internal/domain/port/mocks"
 	"context"
 	"errors"
+	ucerrs "github.com/maket12/meeting-rooms-api/internal/app/errs"
+	"github.com/maket12/meeting-rooms-api/internal/app/usecase"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/internal/domain/port/mocks"
 	"testing"
 	"time"
 

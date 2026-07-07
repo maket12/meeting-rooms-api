@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	model "backend/internal/domain/model"
+	model "github.com/maket12/meeting-rooms-api/internal/domain/model"
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"

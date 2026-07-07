@@ -3,7 +3,6 @@
 package e2e
 
 import (
-	adapterconf "backend/internal/adapter/out/conference"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -16,14 +15,16 @@ import (
 	"testing"
 	"time"
 
-	"backend/cmd/app/config"
-	adapterhttp "backend/internal/adapter/in/http"
-	adapterpostgres "backend/internal/adapter/out/postgres"
-	"backend/internal/app/usecase"
-	infrajwt "backend/internal/infrastructure/jwt"
-	infrapasswd "backend/internal/infrastructure/password"
-	"backend/internal/testhelpers"
-	pkgpostgres "backend/pkg/postgres"
+	adapterconf "github.com/maket12/meeting-rooms-api/internal/adapter/out/conference"
+
+	"github.com/maket12/meeting-rooms-api/cmd/app/config"
+	adapterhttp "github.com/maket12/meeting-rooms-api/internal/adapter/in/http"
+	adapterpostgres "github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres"
+	"github.com/maket12/meeting-rooms-api/internal/app/usecase"
+	infrajwt "github.com/maket12/meeting-rooms-api/internal/infrastructure/jwt"
+	infrapasswd "github.com/maket12/meeting-rooms-api/internal/infrastructure/password"
+	"github.com/maket12/meeting-rooms-api/internal/testhelpers"
+	pkgpostgres "github.com/maket12/meeting-rooms-api/pkg/postgres"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
@@ -33,10 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	migrationVersion = 5
-	apiVersion       = "v1"
-)
+const migrationVersion = 5
 
 type testApp struct {
 	server     *httptest.Server

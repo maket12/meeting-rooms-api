@@ -1,10 +1,11 @@
 package mapper
 
 import (
-	ucerrs "backend/internal/app/errs"
-	pkgucerrs "backend/pkg/errs"
 	"errors"
 	"net/http"
+
+	ucerrs "github.com/maket12/meeting-rooms-api/internal/app/errs"
+	pkgucerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
 )
 
 func HttpError(err error) *pkgucerrs.OutErr {

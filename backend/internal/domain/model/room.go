@@ -1,7 +1,7 @@
 package model
 
 import (
-	pkgerrs "backend/pkg/errs"
+	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
 	"time"
 
 	"github.com/google/uuid"

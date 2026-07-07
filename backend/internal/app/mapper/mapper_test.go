@@ -1,10 +1,10 @@
 package mapper_test
 
 import (
-	"backend/internal/app/dto"
-	"backend/internal/app/mapper"
-	"backend/internal/domain/model"
-	"backend/pkg/utils"
+	"github.com/maket12/meeting-rooms-api/internal/app/dto"
+	"github.com/maket12/meeting-rooms-api/internal/app/mapper"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/pkg/utils"
 	"testing"
 	"time"
 

@@ -1,10 +1,11 @@
 package http
 
 import (
-	"backend/internal/adapter/in/http/mapper"
 	"encoding/json"
 	"log/slog"
 	"net/http"
+
+	"github.com/maket12/meeting-rooms-api/internal/adapter/in/http/mapper"
 )
 
 type BaseHandler struct{ log *slog.Logger }

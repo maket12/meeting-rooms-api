@@ -1,14 +1,14 @@
 package mapper
 
 import (
-	sqlc2 "backend/internal/adapter/out/postgres/sqlc"
-	"backend/internal/domain/model"
-	"backend/pkg/utils"
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/pkg/utils"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func MapRoomToSQLCCreate(room *model.Room) sqlc2.CreateRoomParams {
+func MapRoomToSQLCCreate(room *model.Room) sqlc.CreateRoomParams {
 	var (
 		desc     pgtype.Text
 		capacity int32
@@ -23,7 +23,7 @@ func MapRoomToSQLCCreate(room *model.Room) sqlc2.CreateRoomParams {
 		capacity = int32(*room.Capacity())
 	}
 
-	return sqlc2.CreateRoomParams{
+	return sqlc.CreateRoomParams{
 		ID: pgtype.UUID{
 			Bytes: room.ID(),
 			Valid: true,
@@ -39,7 +39,7 @@ func MapRoomToSQLCCreate(room *model.Room) sqlc2.CreateRoomParams {
 	}
 }
 
-func MapSQLCToRoom(rawRoom sqlc2.Room) *model.Room {
+func MapSQLCToRoom(rawRoom sqlc.Room) *model.Room {
 	var desc *string
 	if rawRoom.Description.Valid {
 		desc = &rawRoom.Description.String
@@ -54,7 +54,7 @@ func MapSQLCToRoom(rawRoom sqlc2.Room) *model.Room {
 	)
 }
 
-func MapSQLCToRoomsList(rawRooms []sqlc2.Room) []*model.Room {
+func MapSQLCToRoomsList(rawRooms []sqlc.Room) []*model.Room {
 	rooms := make([]*model.Room, len(rawRooms))
 	for i := range rooms {
 		mapped := MapSQLCToRoom(rawRooms[i])

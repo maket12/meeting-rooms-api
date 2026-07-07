@@ -1,9 +1,10 @@
 package mapper
 
 import (
-	httpdto "backend/internal/adapter/in/http/dto"
-	appdto "backend/internal/app/dto"
 	"time"
+
+	httpdto "github.com/maket12/meeting-rooms-api/internal/adapter/in/http/dto"
+	appdto "github.com/maket12/meeting-rooms-api/internal/app/dto"
 
 	"github.com/google/uuid"
 )

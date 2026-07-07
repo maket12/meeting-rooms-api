@@ -1,15 +1,15 @@
 package usecase
 
 import (
-	"backend/internal/app/dto"
-	ucerrs "backend/internal/app/errs"
-	"backend/internal/app/mapper"
-	"backend/internal/domain/model"
-	"backend/internal/domain/port"
-	pkgerrs "backend/pkg/errs"
-	"backend/pkg/utils"
 	"context"
 	"errors"
+	"github.com/maket12/meeting-rooms-api/internal/app/dto"
+	ucerrs "github.com/maket12/meeting-rooms-api/internal/app/errs"
+	"github.com/maket12/meeting-rooms-api/internal/app/mapper"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/internal/domain/port"
+	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
+	"github.com/maket12/meeting-rooms-api/pkg/utils"
 
 	"github.com/avito-tech/go-transaction-manager/trm/v2"
 )

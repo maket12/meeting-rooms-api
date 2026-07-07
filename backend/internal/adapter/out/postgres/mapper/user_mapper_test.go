@@ -1,9 +1,9 @@
 package mapper_test
 
 import (
-	"backend/internal/adapter/out/postgres/mapper"
-	"backend/internal/adapter/out/postgres/sqlc"
-	"backend/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/mapper"
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 	"testing"
 	"time"
 

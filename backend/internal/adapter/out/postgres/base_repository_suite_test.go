@@ -3,9 +3,9 @@
 package postgres_test
 
 import (
-	"backend/internal/testhelpers"
-	pkgpostgres "backend/pkg/postgres"
 	"context"
+	"github.com/maket12/meeting-rooms-api/internal/testhelpers"
+	pkgpostgres "github.com/maket12/meeting-rooms-api/pkg/postgres"
 	"log"
 	"os"
 	"testing"

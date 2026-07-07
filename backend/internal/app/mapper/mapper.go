@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"backend/internal/app/dto"
-	"backend/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/internal/app/dto"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 )
 
 func MapDomainToUserDTO(user *model.User) dto.User {

@@ -3,10 +3,10 @@
 package postgres_test
 
 import (
-	adapterpostgres "backend/internal/adapter/out/postgres"
-	"backend/internal/domain/model"
-	pkgerrs "backend/pkg/errs"
-	"backend/pkg/utils"
+	adapterpostgres "github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
+	"github.com/maket12/meeting-rooms-api/pkg/utils"
 	"testing"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"

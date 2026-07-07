@@ -1,14 +1,14 @@
 package mapper
 
 import (
-	sqlc2 "backend/internal/adapter/out/postgres/sqlc"
-	"backend/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func MapUserToSQLCCreate(user *model.User) sqlc2.CreateUserParams {
-	return sqlc2.CreateUserParams{
+func MapUserToSQLCCreate(user *model.User) sqlc.CreateUserParams {
+	return sqlc.CreateUserParams{
 		ID: pgtype.UUID{
 			Bytes: user.ID(),
 			Valid: true,
@@ -24,7 +24,7 @@ func MapUserToSQLCCreate(user *model.User) sqlc2.CreateUserParams {
 	}
 }
 
-func MapSQLCToUser(raw sqlc2.User) *model.User {
+func MapSQLCToUser(raw sqlc.User) *model.User {
 	return model.RestoreUser(
 		raw.ID.Bytes,
 		raw.Email,

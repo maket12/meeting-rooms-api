@@ -1,14 +1,6 @@
 package main
 
 import (
-	"backend/cmd/app/config"
-	adapterhttp "backend/internal/adapter/in/http"
-	adapterconf "backend/internal/adapter/out/conference"
-	adapterpostgres "backend/internal/adapter/out/postgres"
-	"backend/internal/app/usecase"
-	infrajwt "backend/internal/infrastructure/jwt"
-	infrapasswd "backend/internal/infrastructure/password"
-	pkgpostgres "backend/pkg/postgres"
 	"context"
 	"errors"
 	"fmt"
@@ -20,6 +12,15 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/maket12/meeting-rooms-api/cmd/app/config"
+	adapterhttp "github.com/maket12/meeting-rooms-api/internal/adapter/in/http"
+	adapterconf "github.com/maket12/meeting-rooms-api/internal/adapter/out/conference"
+	adapterpostgres "github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres"
+	"github.com/maket12/meeting-rooms-api/internal/app/usecase"
+	infrajwt "github.com/maket12/meeting-rooms-api/internal/infrastructure/jwt"
+	infrapasswd "github.com/maket12/meeting-rooms-api/internal/infrastructure/password"
+	pkgpostgres "github.com/maket12/meeting-rooms-api/pkg/postgres"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"

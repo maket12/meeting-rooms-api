@@ -3,10 +3,11 @@
 package e2e
 
 import (
-	"backend/pkg/utils"
 	"encoding/json"
 	"net/http"
 	"testing"
+
+	"github.com/maket12/meeting-rooms-api/pkg/utils"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

@@ -1,8 +1,8 @@
 package port
 
 import (
-	"backend/internal/domain/model"
 	"context"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 	"time"
 
 	"github.com/google/uuid"

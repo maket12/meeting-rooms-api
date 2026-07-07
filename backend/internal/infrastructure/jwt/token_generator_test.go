@@ -1,7 +1,7 @@
 package jwt_test
 
 import (
-	"backend/internal/infrastructure/jwt"
+	"github.com/maket12/meeting-rooms-api/internal/infrastructure/jwt"
 	"testing"
 	"time"
 

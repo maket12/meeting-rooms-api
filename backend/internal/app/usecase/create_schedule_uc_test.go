@@ -1,13 +1,13 @@
 package usecase_test
 
 import (
-	"backend/internal/app/dto"
-	ucerrs "backend/internal/app/errs"
-	"backend/internal/app/usecase"
-	"backend/internal/domain/model"
-	"backend/internal/domain/port/mocks"
-	pkgerrs "backend/pkg/errs"
 	"context"
+	"github.com/maket12/meeting-rooms-api/internal/app/dto"
+	ucerrs "github.com/maket12/meeting-rooms-api/internal/app/errs"
+	"github.com/maket12/meeting-rooms-api/internal/app/usecase"
+	"github.com/maket12/meeting-rooms-api/internal/domain/model"
+	"github.com/maket12/meeting-rooms-api/internal/domain/port/mocks"
+	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
 	"testing"
 
 	"github.com/avito-tech/go-transaction-manager/trm/v2"

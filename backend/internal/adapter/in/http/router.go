@@ -1,13 +1,14 @@
 package http
 
 import (
-	"backend/internal/infrastructure/jwt"
 	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/maket12/meeting-rooms-api/internal/infrastructure/jwt"
 )
 
 type contextKey string
