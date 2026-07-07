@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+
 	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/mapper"
 	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
 	"github.com/maket12/meeting-rooms-api/internal/domain/model"

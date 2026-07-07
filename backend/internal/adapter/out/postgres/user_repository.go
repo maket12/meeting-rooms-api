@@ -3,8 +3,9 @@ package postgres
 import (
 	"context"
 	"errors"
+
 	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/mapper"
-	sqlc2 "github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
+	"github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres/sqlc"
 	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
 	pkgpostgres "github.com/maket12/meeting-rooms-api/pkg/postgres"
@@ -19,7 +20,7 @@ import (
 )
 
 type UserRepository struct {
-	q      *sqlc2.Queries
+	q      *sqlc.Queries
 	pool   *pgxpool.Pool
 	getter *trmpgx.CtxGetter
 }
@@ -29,7 +30,7 @@ func NewUserRepository(
 	getter *trmpgx.CtxGetter,
 ) *UserRepository {
 	return &UserRepository{
-		q:      sqlc2.New(),
+		q:      sqlc.New(),
 		pool:   pgClient.Pool,
 		getter: getter,
 	}
@@ -94,7 +95,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.U
 func (r *UserRepository) EnsureDummyUsers(ctx context.Context, adminID, userID uuid.UUID) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 
-	params := sqlc2.EnsureDummyUsersParams{
+	params := sqlc.EnsureDummyUsersParams{
 		AdminID: pgtype.UUID{
 			Bytes: adminID,
 			Valid: true,

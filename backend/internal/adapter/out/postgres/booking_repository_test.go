@@ -3,12 +3,13 @@
 package postgres_test
 
 import (
+	"testing"
+	"time"
+
 	adapterpostgres "github.com/maket12/meeting-rooms-api/internal/adapter/out/postgres"
 	"github.com/maket12/meeting-rooms-api/internal/domain/model"
 	pkgerrs "github.com/maket12/meeting-rooms-api/pkg/errs"
 	"github.com/maket12/meeting-rooms-api/pkg/utils"
-	"testing"
-	"time"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
